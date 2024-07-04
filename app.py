@@ -6,8 +6,8 @@ from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_wtf import CSRFProtect
 
-from forms import InfluencerRegistrationForm
-from models import Influencer, User, db
+from forms import InfluencerRegistrationForm, LoginForm, SponsorRegistrationForm
+from models import Influencer, Sponsor, User, db
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '9nL2hZpiJNzXUfneHq1RdhAu8A1vb9xd'
@@ -26,7 +26,7 @@ with app.app_context():
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.filter_by(user_id).first()
+    return User.query.filter_by(id=user_id).first()
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
@@ -36,12 +36,32 @@ def unauthorized_callback():
 def home():
     return render_template('home.html')
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        umail = form.umail.data.lower()
+        password = form.password.data
+
+        user = User.query.filter_by(username=umail).first() or User.query.filter_by(email=umail).first()
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('home'))
+        return render_template('auth/login.html', form=form, error='Invalid credentials')
+
+    return render_template('auth/login.html', form=form)
+
 @app.route('/register', methods=['GET'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
 
-    return render_template('registration/register.html')
+    return render_template('auth/register.html')
 
 @app.route('/register/influencer', methods=['GET', 'POST'])
 def register_influencer():
@@ -51,8 +71,8 @@ def register_influencer():
     form = InfluencerRegistrationForm()
 
     if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
+        username = form.username.data.lower()
+        email = form.email.data.lower()
         password = form.password1.data
         name = form.name.data
         category = form.category.data
@@ -63,9 +83,9 @@ def register_influencer():
         photo = form.profile_picture.data
 
         if User.query.filter_by(username=username).first():
-            return render_template('registration/influencer.html', form=form, error='Username already exists')
+            return render_template('auth/influencer.html', form=form, error='Username already exists')
         if User.query.filter_by(email=email).first():
-            return render_template('registration/influencer.html', form=form, error='Email already exists')
+            return render_template('auth/influencer.html', form=form, error='Email already exists')
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         filename = f'profile_pictures/{username}_{photo.filename}'
@@ -97,7 +117,53 @@ def register_influencer():
 
         login_user(user)
         return redirect(url_for('home'))
-    return render_template('registration/influencer.html', form=form)
+    return render_template('auth/influencer.html', form=form)
+
+@app.route('/register/sponsor', methods=['GET', 'POST'])
+def register_sponsor():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    form = SponsorRegistrationForm()
+
+    if form.validate_on_submit():
+        username = form.username.data.lower()
+        email = form.email.data.lower()
+        password = form.password1.data
+        company_name = form.company_name.data
+        industry = form.industry.data
+        budget = form.budget.data
+
+        if User.query.filter_by(username=username).first():
+            return render_template('auth/sponsor.html', form=form, error='Username already exists')
+        if User.query.filter_by(email=email).first():
+            return render_template('auth/sponsor.html', form=form, error='Email already exists')
+
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        user = User(
+            username=username,
+            email=email,
+            password=hashed_password,
+            user_type='sponsor',
+        )
+
+        sponsor = Sponsor(
+            company_name=company_name,
+            industry=industry,
+            budget=budget,
+        )
+
+        db.session.add(sponsor)
+        db.session.commit()
+
+        user.sponsor_id = sponsor.id
+        db.session.add(user)
+        db.session.commit()
+
+        login_user(user)
+        return redirect(url_for('home'))
+    return render_template('auth/sponsor.html', form=form)
 
 @app.route('/logout', methods=['GET'])
 def logout():

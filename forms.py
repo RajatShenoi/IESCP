@@ -17,3 +17,17 @@ class InfluencerRegistrationForm(FlaskForm):
     twitter = URLField('Twitter:', validators=[DataRequired()])
     profile_picture = FileField('Profile Picture:', validators=[FileRequired()])
     submit = SubmitField('Register')
+
+class SponsorRegistrationForm(FlaskForm):
+    username = StringField('Username:', validators=[DataRequired()])
+    company_name = StringField('Company Name:', validators=[DataRequired()])
+    email = EmailField('Company Email:', validators=[DataRequired()])
+    password1 = PasswordField('Password:', validators=[DataRequired()])
+    password2 = PasswordField('Confirm Password:', validators=[DataRequired()])
+    industry = StringField('Industry:', validators=[DataRequired()])
+    budget = IntegerField('Budget:', validators=[DataRequired()], widget=NumberInput(min=1000))
+
+class LoginForm(FlaskForm):
+    umail = StringField('Username / Email:', validators=[DataRequired()])
+    password = PasswordField('Password:', validators=[DataRequired()])
+    submit = SubmitField('Login')

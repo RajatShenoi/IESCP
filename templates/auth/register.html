@@ -15,7 +15,7 @@
 
 <p>Select the type of account you want to register as:</p>
 <div class="btn-group" role="group">
-    <a type="button" class="btn btn-success">Sponsor</a>
+    <a type="button" class="btn btn-success" href="{{ url_for('register_sponsor') }}">Sponsor</a>
     <a type="button" class="btn btn-warning" href="{{ url_for('register_influencer') }}">Influencer</a>
 </div>
 {% endblock %}

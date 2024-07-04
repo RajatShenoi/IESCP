@@ -10,7 +10,7 @@
 
 <p>To proceed, login or register.</p>
 <div class="btn-group" role="group">
-    <button type="button" class="btn btn-success">Login</button>
+    <a href="{{ url_for('login') }}" class="btn btn-success">Login</a>
     <a href="{{ url_for('register') }}" class="btn btn-warning">Register</a>
 </div>
 {% endblock %}
