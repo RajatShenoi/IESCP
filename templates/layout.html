@@ -1,3 +1,5 @@
+{% from 'bootstrap5/form.html' import render_form %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -33,6 +35,20 @@
                     <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="{{ url_for('home') }}">Home</a>
                     </li>
+                </ul>
+                <ul class="navbar-nav navbar-nav-scroll">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

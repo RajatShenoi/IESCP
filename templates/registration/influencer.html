@@ -1,0 +1,108 @@
+{% extends 'layout.html' %}
+
+{% block title %} Influencer Registration {% endblock %}
+
+{% block body %}
+<h2>Influencer Registration</h2>
+<hr>
+<form action="" method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    {% if form.profile_picture.errors %}
+    <ul class="errors">
+        {% for error in form.profile_picture.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="mb-1">
+        {{ form.username.label }}
+        <div class="input-group">
+            <span class="input-group-text">@</span>
+            {{ form.username(class="form-control") }}
+        </div>
+        <div class="form-text">Enter a username of your choice. It must be unique across all users. Can contain
+            lowercase letters and numbers only. It cannot be changed once created.</div>
+    </div>
+
+    <div class="mb-1">
+        {{ form.name.label }}
+        <div class="input-group">
+            {{ form.name(class="form-control", placeholder="John Doe") }}
+        </div>
+        <div class="form-text">Enter your name. This will be shown to sponsors.</div>
+    </div>
+
+    <div class="mb-1">
+        {{ form.email.label }}
+        <div class="input-group">
+            {{ form.email(class="form-control", placeholder="johndoe@example.com") }}
+        </div>
+        <div class="form-text">Enter your email id, you will use this to login to the website and for other
+            communication purposes.</div>
+    </div>
+
+    <div class="mb-1">
+        {{ form.password1.label }}
+        {{ form.password1(class="form-control") }}
+        <div class="form-text">
+            Your password must be 8-20 characters long, contain letters, numbers and special
+            characters.
+        </div>
+    </div>
+
+    <div class="mb-1">
+        {{ form.password2.label }}
+        {{ form.password2(class="form-control") }}
+        <div class="form-text">
+            Enter the same password as above, for verification.
+        </div>
+    </div>
+
+    <div class="mb-1">
+        {{ form.category.label }}
+        <div class="input-group">
+            {{ form.category(class="form-control", placeholder="Technology, Fashion, Food") }}
+        </div>
+        <div class="form-text">Enter the category you have infuence upon. Example: technology, fashion, food, etc...
+        </div>
+    </div>
+
+    <div class="mb-1">
+        {{ form.reach.label }}
+        <div class="input-group">
+            {{ form.reach(class="form-control", placeholder="123456789") }}
+        </div>
+        <div class="form-text">Enter the cumulative total number of your followers. Add up the follower count across
+            various
+            platforms.</div>
+    </div>
+
+    <div class="mb-1">
+        <label class="form-label">Social Media Profiles:</label>
+        <div class="input-group mb-1">
+            {{ form.instagram(class="form-control", placeholder="https://www.instagram.com/<username>/") }}
+        </div>
+        <div class="input-group mb-1">
+            {{ form.youtube(class="form-control", placeholder="https://www.youtube.com/@<username>/") }}
+        </div>
+        <div class="input-group">
+            {{ form.twitter(class="form-control", placeholder="https://www.x.com/<username>/") }}
+        </div>
+        <div class="form-text">It is mandatory to enter the profile URLs for all these three platforms to register on
+            our platform.</div>
+    </div>
+
+    <div class="mb-2">
+        {{ form.profile_picture.label }}
+        <div class="input-group">
+            {{ form.profile_picture(class="form-control") }}
+        </div>
+        <div class="form-text">Upload a profile picture that represents you.</div>
+    </div>
+
+    <div class="input-group">
+        <button type="submit" class="btn btn-success">Register</button>
+    </div>
+</form>
+{% endblock %}
