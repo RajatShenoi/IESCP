@@ -1,6 +1,8 @@
+import datetime
+
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, PasswordField, IntegerField, URLField, EmailField, ValidationError
+from flask_wtf.file import FileField, FileRequired
+from wtforms import StringField, PasswordField, IntegerField, URLField, EmailField, ValidationError, DateTimeLocalField, BooleanField, TextAreaField
 from wtforms.widgets import NumberInput
 from wtforms.validators import DataRequired, Length
 
@@ -72,3 +74,11 @@ class SponsorRegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
     umail = StringField('Username / Email:', validators=[DataRequired()])
     password = PasswordField('Password:', validators=[DataRequired()])
+
+class NewCampaignForm(FlaskForm):
+    name = StringField('Campaign Name:', validators=[DataRequired()])
+    description = TextAreaField('Description:', validators=[DataRequired(), Length(min=10, max=2000)])
+    start_date = DateTimeLocalField('Start Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
+    end_date = DateTimeLocalField('End Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
+    budget = IntegerField('Budget:', validators=[DataRequired()], widget=NumberInput(min=5))
+    public = BooleanField('Public:', validators=[])
