@@ -1,11 +1,12 @@
 import os
 
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for
 from flask_bcrypt import Bcrypt
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from flask_wtf import CSRFProtect
 
+from utils.decorators import sponsor_required, anonymous_required
 from forms import InfluencerRegistrationForm, LoginForm, SponsorRegistrationForm
 from models import Influencer, Sponsor, User, db
 
@@ -30,17 +31,27 @@ def load_user(user_id):
 
 @login_manager.unauthorized_handler
 def unauthorized_callback():
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 
 @app.route('/', methods=['GET'])
 def home():
     return render_template('home.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    if current_user.user_type == 'sponsor':
+        return redirect(url_for('sponsor_dashboard'))
+    return redirect(url_for('home'))
 
+@app.route('/dashboard/sponsor', methods=['GET'])
+@sponsor_required
+def sponsor_dashboard():
+    return render_template('dash/sponsor/home.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+@anonymous_required
+def login():
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -57,17 +68,13 @@ def login():
     return render_template('auth/login.html', form=form)
 
 @app.route('/register', methods=['GET'])
+@anonymous_required
 def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-
     return render_template('auth/register.html')
 
 @app.route('/register/influencer', methods=['GET', 'POST'])
+@anonymous_required
 def register_influencer():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-
     form = InfluencerRegistrationForm()
 
     if form.validate_on_submit():
@@ -76,16 +83,12 @@ def register_influencer():
         password = form.password1.data
         name = form.name.data
         category = form.category.data
+        niche = form.niche.data
         reach = form.reach.data
         instagram = form.instagram.data
         youtube = form.youtube.data
         twitter = form.twitter.data
         photo = form.profile_picture.data
-
-        if User.query.filter_by(username=username).first():
-            return render_template('auth/influencer.html', form=form, error='Username already exists')
-        if User.query.filter_by(email=email).first():
-            return render_template('auth/influencer.html', form=form, error='Email already exists')
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         filename = f'profile_pictures/{username}_{photo.filename}'
@@ -102,6 +105,7 @@ def register_influencer():
         influencer = Influencer(
             name=name,
             category=category,
+            niche=niche,
             followers=reach,
             instagram=instagram,
             youtube=youtube,
@@ -111,7 +115,7 @@ def register_influencer():
         db.session.add(influencer)
         db.session.commit()
 
-        user.influencer_id = influencer.id
+        user.influencer = influencer
         db.session.add(user)
         db.session.commit()
 
@@ -120,10 +124,8 @@ def register_influencer():
     return render_template('auth/influencer.html', form=form)
 
 @app.route('/register/sponsor', methods=['GET', 'POST'])
+@anonymous_required
 def register_sponsor():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-
     form = SponsorRegistrationForm()
 
     if form.validate_on_submit():
@@ -133,11 +135,6 @@ def register_sponsor():
         company_name = form.company_name.data
         industry = form.industry.data
         budget = form.budget.data
-
-        if User.query.filter_by(username=username).first():
-            return render_template('auth/sponsor.html', form=form, error='Username already exists')
-        if User.query.filter_by(email=email).first():
-            return render_template('auth/sponsor.html', form=form, error='Email already exists')
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
@@ -157,7 +154,7 @@ def register_sponsor():
         db.session.add(sponsor)
         db.session.commit()
 
-        user.sponsor_id = sponsor.id
+        user.sponsor = sponsor
         db.session.add(user)
         db.session.commit()
 

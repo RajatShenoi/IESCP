@@ -12,7 +12,7 @@
     {%- if property %}
     <ul class="errors">
         {% for error in property -%}
-        <li>{{ error }}</li>
+        <li class="text-danger">{{ error }}</li>
         {%- endfor %}
     </ul>
     {% endif -%}
@@ -25,7 +25,10 @@
             {{ form.username(class="form-control") }}
         </div>
         <div class="form-text">Enter a username of your choice. It must be unique across all users. Can contain
-            lowercase letters and numbers only. It cannot be changed once created.</div>
+            lowercase letters and numbers only. It cannot be changed once created. Minimum 3 characters and maximum 16
+            characters.
+        </div>
+        {{ display_errors(form.username.errors) }}
     </div>
 
     <div class="mb-1">
@@ -34,6 +37,7 @@
             {{ form.name(class="form-control", placeholder="John Doe") }}
         </div>
         <div class="form-text">Enter your name. This will be shown to sponsors.</div>
+        {{ display_errors(form.name.errors) }}
     </div>
 
     <div class="mb-1">
@@ -43,15 +47,17 @@
         </div>
         <div class="form-text">Enter your email id, you will use this to login to the website and for other
             communication purposes.</div>
+        {{ display_errors(form.email.errors) }}
     </div>
 
     <div class="mb-1">
         {{ form.password1.label }}
         {{ form.password1(class="form-control") }}
         <div class="form-text">
-            Your password must be 8-20 characters long, contain letters, numbers and special
+            Your password must be atleast 8 characters long, contain letters, numbers and special
             characters.
         </div>
+        {{ display_errors(form.password1.errors) }}
     </div>
 
     <div class="mb-1">
@@ -60,6 +66,7 @@
         <div class="form-text">
             Enter the same password as above, for verification.
         </div>
+        {{ display_errors(form.password2.errors) }}
     </div>
 
     <div class="mb-1">
@@ -69,6 +76,16 @@
         </div>
         <div class="form-text">Enter the category you have infuence upon. Example: technology, fashion, food, etc...
         </div>
+        {{ display_errors(form.category.errors) }}
+    </div>
+
+    <div class="mb-1">
+        {{ form.niche.label }}
+        <div class="input-group">
+            {{ form.niche(class="form-control", placeholder="Technology, Fashion, Food") }}
+        </div>
+        <div class="form-text">Enter the niche you have infuence upon. Example: mobiles, gadgets, clothing, etc...</div>
+        {{ display_errors(form.niche.errors) }}
     </div>
 
     <div class="mb-1">
@@ -79,6 +96,7 @@
         <div class="form-text">Enter the cumulative total number of your followers. Add up the follower count across
             various
             platforms.</div>
+        {{ display_errors(form.reach.errors) }}
     </div>
 
     <div class="mb-1">
@@ -86,12 +104,15 @@
         <div class="input-group mb-1">
             {{ form.instagram(class="form-control", placeholder="https://www.instagram.com/<username>/") }}
         </div>
+        {{ display_errors(form.instagram.errors) }}
         <div class="input-group mb-1">
             {{ form.youtube(class="form-control", placeholder="https://www.youtube.com/@<username>/") }}
         </div>
+        {{ display_errors(form.youtube.errors) }}
         <div class="input-group">
             {{ form.twitter(class="form-control", placeholder="https://www.x.com/<username>/") }}
         </div>
+        {{ display_errors(form.twitter.errors) }}
         <div class="form-text">It is mandatory to enter the profile URLs for all these three platforms to register on
             our platform.</div>
     </div>
@@ -102,6 +123,7 @@
             {{ form.profile_picture(class="form-control") }}
         </div>
         <div class="form-text">Upload a profile picture that represents you.</div>
+        {{ display_errors(form.profile_picture.errors) }}
     </div>
 
     <div class="input-group">
