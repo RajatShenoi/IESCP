@@ -12,7 +12,7 @@ def sponsor_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if current_user.user_type != 'sponsor':
-            return redirect(url_for('home'))
+            return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -24,6 +24,6 @@ def anonymous_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.is_authenticated:
-            return redirect(url_for('home'))
+            return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function

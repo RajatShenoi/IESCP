@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% block title %} Home {% endblock %}
+
+{% block body %}
+<h2>Welcome to IESCP!</h2>
+<hr>
+<p>IESCP (Influencer Engagement and Sponsorship Coordination Platform) is a one stop platform to connect Sponsors and
+    Influencers so that sponsors can get their product/service advertised and influencers can get monetary benefit.</p>
+
+{% if current_user.is_authenticated %}
+<p>You are logged in as <strong>{{ current_user.username }}</strong>. ({{ current_user.user_type }})</p>
+<a href="{{ url_for('main.dashboard') }}" class="btn btn-warning">{{ current_user.user_type.capitalize() }}
+    Dashboard</a>
+{% else %}
+<p>To proceed, login or register.</p>
+<div class="btn-group" role="group">
+    <a href="{{ url_for('auth.login') }}" class="btn btn-success">Login</a>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-warning">Register</a>
+</div>
+{% endif %}
+{% endblock %}
