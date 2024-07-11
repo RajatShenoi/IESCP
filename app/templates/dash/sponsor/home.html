@@ -1,17 +1,15 @@
 {% extends 'layout.html' %}
 
+{% from 'macros.html' import display_campaign_card %}
+
 {% block title %} Dashboard {% endblock %}
 
 {% block body %}
-<h2>Welcome, {{ current_user.sponsor.company_name }} ({{ current_user.username }})</h2>
+<h2>Welcome, {{ current_user.sponsor.company_name }}</h2>
 <hr>
 <h4>Active Campaigns</h4>
 {% if campaigns | length != 0 %}
-<ul>
-    {% for campaign in campaigns %}
-    <li>{{ campaign.name }} - {{ campaign.description }}</li>
-    {% endfor %}
-</ul>
+You have some campaigns running. Visit <a href="{{ url_for('sponsor.campaigns') }}">campaigns</a> page to view them.
 {% else %}
 <p>No active campaigns.</p>
 {% endif %}

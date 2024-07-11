@@ -1,0 +1,25 @@
+{% macro display_errors(property) -%}
+{%- if property %}
+<ul class="errors">
+    {% for error in property -%}
+    <li class="text-danger">{{ error }}</li>
+    {%- endfor %}
+</ul>
+{% endif -%}
+{%- endmacro %}
+
+{% macro display_campaign_card(image, title, descrption, id) -%}
+<div class="col">
+    <div class="card h-100">
+        <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
+        <div class="card-body">
+            <h5 class="card-title">{{title}}</h5>
+            <p class="card-text">{{descrption}}</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('sponsor.campaign', id=id) }}" class="text-body-secondary"><small>More
+                    details</small></a>
+        </div>
+    </div>
+</div>
+{%- endmacro %}

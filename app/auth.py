@@ -1,6 +1,6 @@
-import os
+import os, uuid
 
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, redirect, render_template, url_for, current_app
 from flask_login import login_user, logout_user
 
 from . import bcrypt, db
@@ -52,8 +52,9 @@ def register_influencer():
         photo = form.profile_picture.data
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        filename = f'profile_pictures/{username}_{photo.filename}'
-        photo.save(os.path.join(auth_bp.instance_path, 'media', 'profile_pictures', f'{username}_{photo.filename}'))
+        extension = photo.filename[photo.filename.rfind('.'):]
+        filename = f'{username}{extension}'
+        photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
 
         user = User(
             username=username,
@@ -96,14 +97,19 @@ def register_sponsor():
         company_name = form.company_name.data
         industry = form.industry.data
         budget = form.budget.data
+        photo = form.profile_picture.data
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        extension = photo.filename[photo.filename.rfind('.'):]
+        filename = f'{uuid.uuid4()}{extension}'
+        photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
 
         user = User(
             username=username,
             email=email,
             password=hashed_password,
             user_type='sponsor',
+            profile_picture=filename,
         )
 
         sponsor = Sponsor(

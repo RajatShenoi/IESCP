@@ -1,22 +1,14 @@
 {% extends 'layout.html' %}
 
+{% from 'macros.html' import display_errors %}
+
 {% block title %} Sponsor Registration {% endblock %}
 
 {% block body %}
 <h2>Sponsor Registration</h2>
 <hr>
-<form action="" method="post">
+<form action="" method="post" enctype="multipart/form-data">
     {{ form.csrf_token }}
-
-    {% macro display_errors(property) -%}
-    {%- if property %}
-    <ul class="errors">
-        {% for error in property -%}
-        <li class="text-danger">{{ error }}</li>
-        {%- endfor %}
-    </ul>
-    {% endif -%}
-    {%- endmacro %}
 
     <div class="mb-1">
         {{ form.username.label }}
@@ -89,6 +81,16 @@
             the
             expenses.</div>
         {{ display_errors(form.budget.errors) }}
+    </div>
+
+    <div class="mb-2">
+        {{ form.profile_picture.label }}
+        <div class="input-group">
+            {{ form.profile_picture(class="form-control") }}
+        </div>
+        <div class="form-text">Upload a profile picture that represents your company. Only .jpg, .jpeg and .png files
+            are allowed and must be less than 5MB.</div>
+        {{ display_errors(form.profile_picture.errors) }}
     </div>
 
     <div class="input-group">

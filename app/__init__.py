@@ -8,6 +8,7 @@ bcrypt = Bcrypt()
 def create_app():
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+    app.config['CAMPAIGN_IMAGE'] = app.instance_path + '/media/campaign_images/'
 
     from .main import main_bp
     from .auth import auth_bp

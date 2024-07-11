@@ -1,5 +1,7 @@
 {% extends 'layout.html' %}
 
+{% from 'macros.html' import display_errors %}
+
 {% block title %} Influencer Registration {% endblock %}
 
 {% block body %}
@@ -7,16 +9,6 @@
 <hr>
 <form action="" method="post" enctype="multipart/form-data">
     {{ form.csrf_token }}
-
-    {% macro display_errors(property) -%}
-    {%- if property %}
-    <ul class="errors">
-        {% for error in property -%}
-        <li class="text-danger">{{ error }}</li>
-        {%- endfor %}
-    </ul>
-    {% endif -%}
-    {%- endmacro %}
 
     <div class="mb-1">
         {{ form.username.label }}
@@ -122,7 +114,8 @@
         <div class="input-group">
             {{ form.profile_picture(class="form-control") }}
         </div>
-        <div class="form-text">Upload a profile picture that represents you.</div>
+        <div class="form-text">Upload a profile picture that represents you. Only .jpg, .jpeg and .png files
+            are allowed and must be less than 5MB.</div>
         {{ display_errors(form.profile_picture.errors) }}
     </div>
 

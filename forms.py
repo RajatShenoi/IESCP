@@ -1,12 +1,14 @@
 import datetime
 
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileRequired
+from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import StringField, PasswordField, IntegerField, URLField, EmailField, ValidationError, DateTimeLocalField, BooleanField, TextAreaField
 from wtforms.widgets import NumberInput
 from wtforms.validators import DataRequired, Length
 
 from models import User
+
+ALLOWED_IMAGES = ['jpg', 'png', 'jpeg']
 
 class InfluencerRegistrationForm(FlaskForm):
     username = StringField('Username:', validators=[DataRequired(), Length(min=3, max=20)])
@@ -20,7 +22,7 @@ class InfluencerRegistrationForm(FlaskForm):
     instagram = URLField('Instagram:', validators=[DataRequired()])
     youtube = URLField('YouTube:', validators=[DataRequired()])
     twitter = URLField('Twitter:', validators=[DataRequired()])
-    profile_picture = FileField('Profile Picture:', validators=[FileRequired('File was empty.')])
+    profile_picture = FileField('Profile Picture:', validators=[FileRequired('File was empty.'), FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
 
     def validate_username(form, field):
         if not field.data.isalnum():
@@ -50,6 +52,7 @@ class SponsorRegistrationForm(FlaskForm):
     password2 = PasswordField('Confirm Password:', validators=[DataRequired()])
     industry = StringField('Industry:', validators=[DataRequired()])
     budget = IntegerField('Budget:', validators=[DataRequired()], widget=NumberInput(min=1000))
+    profile_picture = FileField('Profile Picture:', validators=[FileRequired('File was empty.'), FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
 
     def validate_username(form, field):
         if not field.data.isalnum():
@@ -81,4 +84,8 @@ class NewCampaignForm(FlaskForm):
     start_date = DateTimeLocalField('Start Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
     end_date = DateTimeLocalField('End Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
     budget = IntegerField('Budget:', validators=[DataRequired()], widget=NumberInput(min=5))
+    image = FileField('Image:', validators=[FileRequired('File was empty.'), FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
     public = BooleanField('Public:', validators=[])
+
+class EditCampaignForm(NewCampaignForm):
+    image = FileField('Image:', validators=[FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})

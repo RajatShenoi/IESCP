@@ -56,6 +56,7 @@ class Campaign(db.Model):
     public = db.Column(db.Boolean)
     adrequests = db.relationship('AdRequest', backref='campaign')
     goals = db.relationship('CampaignGoal', backref='campaign')
+    image = db.Column(db.String(1000))
     sponsor_id = db.Column(db.Integer, db.ForeignKey('Sponsor.id'))
 
     def __repr__(self):
