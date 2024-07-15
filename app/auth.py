@@ -1,6 +1,6 @@
 import os, uuid
 
-from flask import Blueprint, redirect, render_template, url_for, current_app
+from flask import Blueprint, flash, redirect, render_template, url_for, current_app
 from flask_login import login_user, logout_user
 
 from . import bcrypt, db
@@ -24,7 +24,8 @@ def login():
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('main.home'))
-        return render_template('auth/login.html', form=form, error='Invalid credentials')
+        flash('Invalid credentials. Please try again.', 'danger')
+        return render_template('auth/login.html', form=form)
 
     return render_template('auth/login.html', form=form)
 
@@ -53,7 +54,7 @@ def register_influencer():
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         extension = photo.filename[photo.filename.rfind('.'):]
-        filename = f'{username}{extension}'
+        filename = f'{uuid.uuid4()}{extension}'
         photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
 
         user = User(

@@ -1,16 +1,24 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import display_campaign_card %}
+{% from 'macros.html' import display_campaign_card, display_campaign_list %}
 
 {% block title %} Dashboard {% endblock %}
 
 {% block body %}
 <h2>Welcome, {{ current_user.sponsor.company_name }}</h2>
 <hr>
-<h4>Active Campaigns</h4>
-{% if campaigns | length != 0 %}
-You have some campaigns running. Visit <a href="{{ url_for('sponsor.campaigns') }}">campaigns</a> page to view them.
-{% else %}
-<p>No active campaigns.</p>
-{% endif %}
+<div class="row row-cols-1 row-cols-lg-3 row-gap-4">
+    <div class="col">
+        <h5>Active Campaigns</h5>
+        {{ display_campaign_list(active_campaigns, 'light', 'active') }}
+    </div>
+    <div class="col">
+        <h5>Upcoming Campaigns</h5>
+        {{ display_campaign_list(upcoming_campaigns, 'light', 'upcoming') }}
+    </div>
+    <div class="col">
+        <h5>Past Campaigns</h5>
+        {{ display_campaign_list(past_campaigns, 'light', 'past') }}
+    </div>
+</div>
 {% endblock %}

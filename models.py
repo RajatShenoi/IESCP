@@ -1,5 +1,7 @@
+from datetime import datetime
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.hybrid import hybrid_property
 
 db = SQLAlchemy()
 
@@ -12,6 +14,7 @@ class User(UserMixin, db.Model):
     user_type = db.Column(db.String(100))
     sponsor = db.relationship('Sponsor', backref='user', uselist=False)
     influencer = db.relationship('Influencer', backref='user', uselist=False)
+    quote_id = db.Column(db.Integer, db.ForeignKey('Quote.id'))
     profile_picture = db.Column(db.String(1000))
 
     def __repr__(self):
@@ -40,7 +43,7 @@ class Influencer(db.Model):
     youtube = db.Column(db.String(256))
     twitter = db.Column(db.String(256))
     user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
-    adrequest_id = db.Column(db.Integer, db.ForeignKey('AdRequest.id'))
+    adrequests = db.relationship('AdRequest', backref='influencer')
 
     def __repr__(self):
         return f'<Influencer {self.name}>'
@@ -55,25 +58,49 @@ class Campaign(db.Model):
     budget = db.Column(db.Integer)
     public = db.Column(db.Boolean)
     adrequests = db.relationship('AdRequest', backref='campaign')
-    goals = db.relationship('CampaignGoal', backref='campaign')
+    goal = db.Column(db.Integer)
+    tnc = db.Column(db.String(20000))
     image = db.Column(db.String(1000))
     sponsor_id = db.Column(db.Integer, db.ForeignKey('Sponsor.id'))
+
+    @hybrid_property
+    def current_spends(self):
+        return sum([ad.current_quote.amount for ad in self.adrequests if ad.status == 'completed'])
+    
+    @hybrid_property
+    def current_reach(self):
+        return sum([ad.influencer.followers for ad in self.adrequests if ad.status == 'completed'])
 
     def __repr__(self):
         return f'<Campaign {self.name}>'
 
-class CampaignGoal(db.Model):
-    __tablename__ = 'CampaignGoal'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    campaign_id = db.Column(db.Integer, db.ForeignKey('Campaign.id'))
-    goal = db.Column(db.String(100))
-    completed = db.Column(db.Boolean)
-
 class AdRequest(db.Model):
     __tablename__ = 'AdRequest'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100))
     campaign_id = db.Column(db.Integer, db.ForeignKey('Campaign.id'))
     requirements = db.Column(db.String(2000))
-    influencer = db.relationship('Influencer', backref='adrequest', uselist=False)
-    payment_amount = db.Column(db.Integer)
+    influencer_id = db.Column(db.Integer, db.ForeignKey('Influencer.id'))
+    quotes = db.relationship('Quote', backref='adrequest')
     status = db.Column(db.String(20))
+
+    @hybrid_property
+    def current_quote(self):
+        return Quote.query.filter_by(adrequest_id=self.id).order_by(Quote.created_at.desc()).first()
+    
+class Quote(db.Model):
+    __tablename__ = 'Quote'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    amount = db.Column(db.Integer)
+    proposed_by = db.relationship('User', backref='quote', uselist=False)
+    message = db.Column(db.String(1000), nullable=True)
+    adrequest_id = db.Column(db.Integer, db.ForeignKey('AdRequest.id'))
+    created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+
+    def __setattr__(self, key, value):
+        if key == 'created_at' and hasattr(self, key):
+            raise AttributeError("Cannot modify created_at attribute")
+        super().__setattr__(key, value)
+
+    def __repr__(self):
+        return f'<Quote {self.amount}>'
