@@ -5,7 +5,7 @@
 {% block title %} Dashboard {% endblock %}
 
 {% block body %}
-<h4>{{ campaign.name }}<button type="button" class="btn ms-4 btn-info" data-bs-toggle="modal"
+<h4>{{ campaign.name }}<button type="button" class="btn ms-4 btn-warning" data-bs-toggle="modal"
         data-bs-target="#editCampaign">Edit</button></h4>
 <hr>
 <p><strong>Description: </strong>{{ campaign.description }}</li>
@@ -39,7 +39,9 @@ No requests created / received for this campaign yet.
             {% for adreq in campaign.adrequests %}
             {% if adreq.status == 'pending' %}
             <tr>
-                <td>{{ adreq.name }}</td>
+                <td><a type="button" data-bs-toggle="modal" data-bs-target="#requestManagement{{adreq.id}}">{{
+                        adreq.name }}</a>
+                </td>
                 <td>{{ adreq.requirements[:50] }}</td>
                 <td>${{ adreq.current_quote.amount }}</td>
                 <td>{{ adreq.influencer.user.username }}</td>
@@ -68,7 +70,9 @@ No requests created / received for this campaign yet.
             {% if adreq.status != 'pending' %}
             <tr
                 class="{% if adreq.status == 'completed' %}table-success{% elif adreq.status == 'declined' %}table-danger{% endif %}">
-                <td>{{ adreq.name }}</td>
+                <td><a type="button" data-bs-toggle="modal" data-bs-target="#requestManagement{{adreq.id}}">{{
+                        adreq.name }}</a>
+                </td>
                 <td>{{ adreq.requirements[:50] }}</td>
                 <td>${{ adreq.current_quote.amount }}</td>
                 <td>{{ adreq.influencer.user.username }}</td>
@@ -80,6 +84,118 @@ No requests created / received for this campaign yet.
     </table>
 </div>
 {% endif %}
+
+<!-- Ad Request Management -->
+{% for adreq in campaign.adrequests %}
+{% if adreq.status == 'pending' %}
+<div class="modal fade" id="requestManagement{{adreq.id}}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="requestManagement{{adreq.id}}Label">"{{ adreq.name }}" Management</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Requirements:</strong> {{ adreq.requirements }}<br>
+                    <strong>Current Offer:</strong> ${{ adreq.current_quote.amount }}<br>
+                    <strong>Influencer:</strong> {{ adreq.influencer.user.username }}<br>
+                    <strong>Status:</strong> {{ adreq.status }}
+                </p>
+                <div class="list-group">
+                    {% for quote in adreq.quotes|sort(reverse=true, attribute="created_at") %}
+                    <li class="list-group-item {% if quote.user.username ==
+                        current_user.username %}border-info{% else %}border-success{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">${{quote.amount}}</h5>
+                            <small>{{quote.created_at}}</small>
+                        </div>
+                        {% if quote.message %}
+                        <p class="mb-1">{{quote.message}}</p>
+                        {% endif %}
+                        <small>sent by <strong>{{quote.user.username}} {% if quote.user.username ==
+                                current_user.username %}(you){% endif %}</strong></small>
+                    </li>
+                    {% endfor %}
+                </div>
+                <br>
+                <form action="{{ url_for('sponsor.negotiateAdOffer', id=campaign.id, ad_id=adreq.id) }}" method="post">
+                    {{ addofferform.csrf_token }}
+                    <div class="mb-1">
+                        {{ addofferform.updated_amount.label }}
+                        <div class="input-group">
+                            {{ addofferform.updated_amount(class="form-control") }}
+                        </div>
+                        <div class="form-text">Enter the new compensation offered. Offer will not be created if the
+                            sum of total spends and this offer exceeds your budget.</div>
+                        {{ display_errors(addofferform.updated_amount.errors) }}
+                    </div>
+                    <div class="mb-1">
+                        {{ addofferform.message.label }}
+                        <div class="input-group">
+                            {{ addofferform.message(class="form-control") }}
+                        </div>
+                        <div class="form-text">Optional: Enter an message for the inlfuencer.
+                        </div>
+                        {{ display_errors(addofferform.message.errors) }}
+                    </div>
+                    <p>
+                        <a class="btn btn-danger"
+                            href="{{ url_for('sponsor.declineAdOffer', id=campaign.id, ad_id=adreq.id) }}">Decline
+                            Offer</a>
+                    </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-success">Update</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% for adreq in campaign.adrequests %}
+{% if adreq.status != 'pending' %}
+<div class="modal fade" id="requestManagement{{adreq.id}}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="requestManagement{{adreq.id}}Label">"{{ adreq.name }}" Management</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Requirements:</strong> {{ adreq.requirements }}<br>
+                    <strong>Current Offer:</strong> ${{ adreq.current_quote.amount }}<br>
+                    <strong>Influencer:</strong> {{ adreq.influencer.user.username }}<br>
+                    <strong>Status:</strong> {{ adreq.status }}
+                </p>
+                <div class="list-group">
+                    {% for quote in adreq.quotes|sort(reverse=true, attribute="created_at") %}
+                    <li class="list-group-item {% if quote.user.username ==
+                        current_user.username %}border-info{% else %}border-success{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">${{quote.amount}}</h5>
+                            <small>{{quote.created_at}}</small>
+                        </div>
+                        {% if quote.message %}
+                        <p class="mb-1">{{quote.message}}</p>
+                        {% endif %}
+                        <small>sent by <strong>{{quote.user.username}} {% if quote.user.username ==
+                                current_user.username %}(you){% endif %}</strong></small>
+                    </li>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Close</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
 
 <!-- Ad Request Modal -->
 <div class="modal fade" id="newAdRequest" tabindex="-1">

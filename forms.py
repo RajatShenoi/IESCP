@@ -142,3 +142,7 @@ class NewAdRequestForm(FlaskForm):
         if not user.influencer:
             flash('User is not an influencer.', 'danger')
             raise ValidationError('User is not an influencer.')
+
+class AdOfferManageForm(FlaskForm):
+    updated_amount = IntegerField('Amount:', validators=[DataRequired()], widget=NumberInput(min=5))
+    message = TextAreaField('Message:', validators=[Length(max=1000)])

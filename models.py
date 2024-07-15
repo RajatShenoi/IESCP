@@ -14,7 +14,7 @@ class User(UserMixin, db.Model):
     user_type = db.Column(db.String(100))
     sponsor = db.relationship('Sponsor', backref='user', uselist=False)
     influencer = db.relationship('Influencer', backref='user', uselist=False)
-    quote_id = db.Column(db.Integer, db.ForeignKey('Quote.id'))
+    quotes = db.relationship('Quote', backref='user')
     profile_picture = db.Column(db.String(1000))
 
     def __repr__(self):
@@ -92,7 +92,7 @@ class Quote(db.Model):
     __tablename__ = 'Quote'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     amount = db.Column(db.Integer)
-    proposed_by = db.relationship('User', backref='quote', uselist=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
     message = db.Column(db.String(1000), nullable=True)
     adrequest_id = db.Column(db.Integer, db.ForeignKey('AdRequest.id'))
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)

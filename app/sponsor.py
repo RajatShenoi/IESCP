@@ -1,11 +1,12 @@
-import os, uuid
+import os
+import uuid
 
 from datetime import datetime
 from flask import Blueprint, redirect, render_template, url_for, current_app
 from flask_login import current_user
 
 from . import db
-from forms import EditCampaignForm, NewAdRequestForm, NewCampaignForm
+from forms import AdOfferManageForm, EditCampaignForm, NewAdRequestForm, NewCampaignForm
 from models import AdRequest, Campaign, Influencer, Quote, Sponsor, User
 from utils.decorators import sponsor_required
 
@@ -66,6 +67,50 @@ def campaigns():
         campaigns=campaigns,
     )
 
+@sponsor_bp.route('/sponsor/campaigns/<int:id>/manage/<int:ad_id>/decline', methods=['GET'])
+@sponsor_required
+def declineAdOffer(id, ad_id):
+    sponsor = Sponsor.query.filter_by(user_id=current_user.id).first()
+    campaign = Campaign.query.filter_by(id=id, sponsor_id=sponsor.id).first()
+    ad = AdRequest.query.filter_by(id=ad_id, campaign_id=campaign.id).first()
+
+    if campaign is None or ad is None or sponsor is None or ad.status != 'pending':
+        return redirect(url_for('sponsor.campaigns'))
+    
+    quote = Quote(
+        amount=ad.current_quote.amount,
+        message='This offer has been cancelled / declined.',
+        user_id=current_user.id,
+        adrequest_id=ad.id,
+    )
+
+    ad.status = 'declined'
+    db.session.add(quote)
+    db.session.commit()
+    return redirect(url_for('sponsor.campaign', id=id))
+
+@sponsor_bp.route('/sponsor/campaigns/<int:id>/manage/<int:ad_id>/negotiate', methods=['POST'])
+@sponsor_required
+def negotiateAdOffer(id, ad_id):
+    sponsor = Sponsor.query.filter_by(user_id=current_user.id).first()
+    campaign = Campaign.query.filter_by(id=id, sponsor_id=sponsor.id).first()
+    ad = AdRequest.query.filter_by(id=ad_id, campaign_id=campaign.id).first()
+
+    if campaign is None or ad is None or sponsor is None or ad.status != 'pending':
+        return redirect(url_for('sponsor.campaigns'))
+    
+    form = AdOfferManageForm()
+    if form.validate_on_submit():
+        quote = Quote(
+            amount=form.updated_amount.data,
+            message=form.message.data,
+            user_id=current_user.id,
+            adrequest_id=ad.id,
+        )
+        db.session.add(quote)
+        db.session.commit()
+    return redirect(url_for('sponsor.campaign', id=id))
+
 @sponsor_bp.route('/sponsor/campaigns/<int:id>/createad', methods=['POST'])
 @sponsor_required
 def createAdRequest(id):
@@ -83,7 +128,6 @@ def createAdRequest(id):
             name=form.name.data,
             requirements=form.requirements.data,
             influencer_id=influencer.id,
-            message=form.message.data,
             campaign_id=campaign.id,
             status='pending',
         )
@@ -92,7 +136,8 @@ def createAdRequest(id):
 
         quote = Quote(
             amount=form.amount.data, 
-            proposed_by=current_user,
+            message=form.message.data,
+            user_id=current_user.id,
             adrequest_id=ad.id,
         )
         db.session.add(quote)
@@ -114,6 +159,7 @@ def campaign(id):
 
     form = EditCampaignForm(obj=campaign)
     adform = NewAdRequestForm()
+    adofferform = AdOfferManageForm()
     if form.validate_on_submit():
         campaign.name = form.name.data
         campaign.description = form.description.data
@@ -137,4 +183,5 @@ def campaign(id):
         campaign=campaign,
         form=form,
         adform=adform,
+        addofferform=adofferform,
     )
