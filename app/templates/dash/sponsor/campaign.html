@@ -27,7 +27,7 @@
         <strong>Progress:</strong>
         <div class="progress" role="progressbar">
             <div class="progress-bar bg-success" style="width: {{ campaign.current_reach / campaign.goal * 100 }}%">
-                {{ campaign.current_reach / campaign.goal * 100 }}%
+                {{ 100 * (campaign.current_reach / campaign.goal)|round(2) }}%
             </div>
         </div>
     </div>

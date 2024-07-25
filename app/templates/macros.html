@@ -109,3 +109,19 @@ No {{ message }} campaigns
     </table>
 </div>
 {% endmacro %}
+
+{% macro display_campaign_card_inf(image, title, descrption, id) -%}
+<div class="col">
+    <div class="card h-100">
+        <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
+        <div class="card-body">
+            <h5 class="card-title">{{title}}</h5>
+            <p class="card-text">{{descrption[:100]}}...</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('influencer.viewCampaign', id=id) }}" class="text-body-secondary"><small>More
+                    details</small></a>
+        </div>
+    </div>
+</div>
+{%- endmacro %}

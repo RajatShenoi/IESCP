@@ -113,7 +113,7 @@
 <!-- Modal ends -->
 {% if campaigns | length != 0 %}
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
-    {% for campaign in campaigns %}
+    {% for campaign in campaigns|sort(reverse=true, attribute="start_date") %}
     {{display_campaign_card(campaign.image, campaign.name, campaign.description, campaign.id)}}
     {% endfor %}
 </div>

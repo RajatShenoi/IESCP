@@ -1,10 +1,11 @@
 from datetime import datetime
 from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user
+from sqlalchemy import or_
 
 from . import db
-from forms import AdOfferManageForm
-from models import AdRequest, Influencer, Quote, User
+from forms import AdOfferManageForm, NewAdRequestInfForm, SearchForm
+from models import AdRequest, Campaign, Influencer, Quote, User
 from utils.decorators import influencer_required
 
 influencer_bp = Blueprint('influencer', __name__)
@@ -18,6 +19,68 @@ def dashboard():
     addofferform = AdOfferManageForm()
 
     return render_template('dash/influencer/home.html', influencer=influencer, addofferform=addofferform)
+
+@influencer_bp.route('/influencer/find', methods=['GET', 'POST'])
+@influencer_required
+def findCampaigns():
+    campaigns = Campaign.query.filter_by(public=True).filter(Campaign.end_date > datetime.now(), Campaign.start_date <= datetime.now())
+
+    form = SearchForm()
+    if form.validate_on_submit():
+        search_term = f'%{form.search.data.strip()}%'
+        campaigns = campaigns.filter(
+            or_(
+                Campaign.name.ilike(search_term),
+                Campaign.description.ilike(search_term),
+                Campaign.start_date.ilike(search_term),
+                Campaign.end_date.ilike(search_term),
+                Campaign.tnc.ilike(search_term),
+            )
+        )
+    return render_template('dash/influencer/find.html', campaigns=campaigns.all(), form=form)
+
+@influencer_bp.route('/influencer/find/<int:id>', methods=['GET', 'POST'])
+@influencer_required
+def viewCampaign(id):
+    campaign = Campaign.query.filter_by(public=True, id=id).filter(Campaign.end_date > datetime.now(), Campaign.start_date <= datetime.now()).first()
+
+    if campaign is None:
+        return redirect(url_for('influencer.findCampaigns'))
+    
+    influencer = Influencer.query.filter_by(user_id=current_user.id).first()
+    adrequests = AdRequest.query.filter_by(campaign_id=campaign.id, influencer_id=influencer.id).all()
+    
+    form = NewAdRequestInfForm()
+    addofferform = AdOfferManageForm()
+    if form.validate_on_submit():
+        influencer_user = User.query.filter_by(username=current_user.username).first()
+        influencer = Influencer.query.filter_by(user_id=influencer_user.id).first()
+        ad = AdRequest(
+            name=form.name.data,
+            requirements=form.requirements.data,
+            influencer_id=influencer.id,
+            campaign_id=campaign.id,
+            status='pending',
+        )
+        db.session.add(ad)
+        db.session.commit()
+
+        quote = Quote(
+            amount=form.amount.data, 
+            message=form.message.data,
+            user_id=current_user.id,
+            adrequest_id=ad.id,
+            created_at=datetime.now(),
+        )
+        db.session.add(quote)
+        db.session.commit()
+
+        ad.quotes.append(quote)
+        influencer.adrequests.append(ad)
+        db.session.commit()
+
+        return redirect(url_for('influencer.dashboard'))
+    return render_template('dash/influencer/campaign.html', campaign=campaign, adform=form, adrequests=adrequests, addofferform=addofferform)
 
 @influencer_bp.route('/influencer/offer/<int:ad_id>/negotiate', methods=['POST'])
 @influencer_required
@@ -39,7 +102,7 @@ def negotiateAdOffer(ad_id):
         )
         db.session.add(quote)
         db.session.commit()
-    return redirect(url_for('influencer.dashboard'))
+    return redirect(url_for('influencer.viewCampaign', id=ad.campaign_id))
 
 
 @influencer_bp.route('/influencer/offer/<int:ad_id>/decline', methods=['GET'])

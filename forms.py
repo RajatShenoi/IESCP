@@ -151,3 +151,9 @@ class AdOfferManageForm(FlaskForm):
 
 class SearchForm(FlaskForm):
     search = StringField('Search:', validators=[])
+
+class NewAdRequestInfForm(NewAdRequestForm):
+    influencer = None
+
+    def validate_influencer(form, field):
+        pass
