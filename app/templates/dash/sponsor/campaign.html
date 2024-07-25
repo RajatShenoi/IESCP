@@ -24,7 +24,12 @@
                 class="text-danger">click
                 here</a>
         </p>
-
+        <strong>Progress:</strong>
+        <div class="progress" role="progressbar">
+            <div class="progress-bar bg-success" style="width: {{ campaign.current_reach / campaign.goal * 100 }}%">
+                {{ campaign.current_reach / campaign.goal * 100 }}%
+            </div>
+        </div>
     </div>
 </div>
 <hr>
@@ -47,7 +52,7 @@ No requests created / received for this campaign yet.
             </tr>
         </thead>
         <tbody>
-            {% for adreq in campaign.adrequests %}
+            {% for adreq in campaign.adrequests|sort(reverse=true, attribute="current_quote.created_at") %}
             {% if adreq.status == 'pending' %}
             <tr>
                 <td><a type="button" data-bs-toggle="modal" data-bs-target="#requestManagement{{adreq.id}}">{{
@@ -63,8 +68,7 @@ No requests created / received for this campaign yet.
         </tbody>
     </table>
 </div>
-<hr>
-<h5>Closed Ad Requests</h5>
+<h5>Ongoing Ad Requests:</h5>
 <div class="table-responsive">
     <table class="table table-striped table-bordered">
         <thead>
@@ -77,8 +81,37 @@ No requests created / received for this campaign yet.
             </tr>
         </thead>
         <tbody>
-            {% for adreq in campaign.adrequests %}
-            {% if adreq.status != 'pending' %}
+            {% for adreq in campaign.adrequests|sort(reverse=true, attribute="current_quote.created_at") %}
+            {% if adreq.status == 'ongoing' %}
+            <tr class="table-warning">
+                <td><a type="button" data-bs-toggle="modal" data-bs-target="#requestManagement{{adreq.id}}">{{
+                        adreq.name }}</a>
+                </td>
+                <td>{{ adreq.requirements[:50] }}</td>
+                <td>${{ adreq.current_quote.amount }}</td>
+                <td>{{ adreq.influencer.user.username }}</td>
+                <td>{{ adreq.status }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<h5>Closed Ad Requests:</h5>
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Requirements</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Influencer</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for adreq in campaign.adrequests|sort(reverse=true, attribute="current_quote.created_at") %}
+            {% if adreq.status == 'completed' or adreq.status == 'declined' %}
             <tr
                 class="{% if adreq.status == 'completed' %}table-success{% elif adreq.status == 'declined' %}table-danger{% endif %}">
                 <td><a type="button" data-bs-toggle="modal" data-bs-target="#requestManagement{{adreq.id}}">{{
@@ -153,6 +186,11 @@ No requests created / received for this campaign yet.
                         <a class="btn btn-danger"
                             href="{{ url_for('sponsor.declineAdOffer', id=campaign.id, ad_id=adreq.id) }}">Decline
                             Offer</a>
+                        {% if adreq.current_quote.user_id != current_user.id %}
+                        <a class="btn btn-success"
+                            href="{{ url_for('sponsor.acceptAdOffer', id=campaign.id, ad_id=adreq.id) }}">Accept
+                            Offer</a>
+                        {% endif %}
                     </p>
             </div>
             <div class="modal-footer">

@@ -13,6 +13,7 @@ def create_app():
     from .main import main_bp
     from .auth import auth_bp
     from .sponsor import sponsor_bp
+    from .influencer import influencer_bp
 
     bcrypt.init_app(app)
     db.init_app(app)
@@ -22,5 +23,6 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(sponsor_bp)
+    app.register_blueprint(influencer_bp)
 
     return app

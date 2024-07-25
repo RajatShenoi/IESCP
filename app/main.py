@@ -12,6 +12,8 @@ def home():
 def dashboard():
     if current_user.user_type == 'sponsor':
         return redirect(url_for('sponsor.dashboard'))
+    elif current_user.user_type == 'influencer':
+        return redirect(url_for('influencer.dashboard'))
     return redirect(url_for('main.home'))
 
 @main_bp.route('/files/campaign/<filename>', methods=['GET'])

@@ -2,7 +2,7 @@ import os
 import uuid
 
 from datetime import datetime
-from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app
+from flask import Blueprint, flash, redirect, render_template, url_for, current_app
 from flask_login import current_user
 from sqlalchemy import or_
 
@@ -88,6 +88,33 @@ def declineAdOffer(id, ad_id):
     )
 
     ad.status = 'declined'
+    db.session.add(quote)
+    db.session.commit()
+    return redirect(url_for('sponsor.campaign', id=id))
+
+@sponsor_bp.route('/sponsor/campaigns/<int:id>/manage/<int:ad_id>/accept', methods=['GET'])
+@sponsor_required
+def acceptAdOffer(id, ad_id):
+    sponsor = Sponsor.query.filter_by(user_id=current_user.id).first()
+    campaign = Campaign.query.filter_by(id=id, sponsor_id=sponsor.id).first()
+    ad = AdRequest.query.filter_by(id=ad_id, campaign_id=campaign.id).first()
+
+    if campaign is None or ad is None or sponsor is None or ad.status != 'pending':
+        return redirect(url_for('sponsor.campaigns'))
+    
+    if ad.current_quote.user_id == current_user.id:
+        flash('You cannot accept this offer as you\'ve made the latest negotiation. Kindly wait for the response.', 'danger')
+        return redirect(url_for('sponsor.campaign', id=id))
+    
+    quote = Quote(
+        amount=ad.current_quote.amount,
+        message='This offer has been accepted.',
+        user_id=current_user.id,
+        adrequest_id=ad.id,
+        created_at=datetime.now(),
+    )
+
+    ad.status = 'ongoing'
     db.session.add(quote)
     db.session.commit()
     return redirect(url_for('sponsor.campaign', id=id))

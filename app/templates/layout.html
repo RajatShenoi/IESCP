@@ -47,6 +47,17 @@
                         <a class="nav-link" href="#">Stats</a>
                     </li>
                     {% endif %}
+                    {% if current_user.user_type == "influencer" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('influencer.dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Find</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Stats</a>
+                    </li>
+                    {% endif %}
 
                     <li class="nav-item">
                         <b><span class="nav-link">{{ current_user.username }}</span></b>

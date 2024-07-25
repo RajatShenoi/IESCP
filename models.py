@@ -66,11 +66,11 @@ class Campaign(db.Model):
 
     @hybrid_property
     def current_spends(self):
-        return sum([ad.current_quote.amount for ad in self.adrequests if ad.status == 'completed'])
+        return sum([ad.current_quote.amount for ad in self.adrequests if ad.status in ['completed', 'ongoing']])
     
     @hybrid_property
     def current_reach(self):
-        return sum([ad.influencer.followers for ad in self.adrequests if ad.status == 'completed'])
+        return sum([ad.influencer.followers for ad in self.adrequests if ad.status in ['completed', 'ongoing']])
 
     def __repr__(self):
         return f'<Campaign {self.name}>'
