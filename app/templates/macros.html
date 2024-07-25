@@ -14,12 +14,33 @@
         <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
         <div class="card-body">
             <h5 class="card-title">{{title}}</h5>
-            <p class="card-text">{{descrption}}</p>
+            <p class="card-text">{{descrption[:100]}}...</p>
         </div>
         <div class="card-footer">
             <a href="{{ url_for('sponsor.campaign', id=id) }}" class="text-body-secondary"><small>More
                     details</small></a>
         </div>
+    </div>
+</div>
+{%- endmacro %}
+
+{% macro display_influencer_card(image, influencer) -%}
+<div class="col">
+    <div class="card h-100 position-relative">
+        <img src="{{ url_for('main.influencer_picture', filename=image) }}" class="card-img-top" alt="{{title}}">
+        <div class="card-body">
+            <h5 class="card-title">{{influencer.name}}</h5>
+            <p class="card-text"><small class="text-body-secondary">{{influencer.user.username}}</small></p>
+            <p class="card-text">{{influencer.about[:100]}}...</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('sponsor.influencer', username=influencer.user.username) }}"
+                class="text-body-secondary"><small>More
+                    details</small></a>
+        </div>
+        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+            {{influencer.followers}}
+        </span>
     </div>
 </div>
 {%- endmacro %}
@@ -67,6 +88,7 @@ No {{ message }} campaigns
             <tr>
                 <th scope="col">Budget</th>
                 <th scope="col">Current Spends</th>
+                <th scope="col">Goal</th>
                 <th scope="col">Reach</th>
                 <th scope="col">Start Date</th>
                 <th scope="col">End Date</th>
@@ -77,6 +99,7 @@ No {{ message }} campaigns
             <tr>
                 <td>${{ campaign.budget }}</td>
                 <td>${{ campaign.current_spends }}</td>
+                <td>{{ campaign.goal }}</td>
                 <td>{{ campaign.current_reach }}</td>
                 <td>{{ campaign.start_date }}</td>
                 <td>{{ campaign.end_date }}</td>

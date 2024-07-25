@@ -40,8 +40,9 @@ def register_influencer():
     form = InfluencerRegistrationForm()
 
     if form.validate_on_submit():
-        username = form.username.data.lower()
-        email = form.email.data.lower()
+        username = form.username.data.lower().strip()
+        email = form.email.data.lower().strip()
+        about = form.about.data
         password = form.password1.data
         name = form.name.data
         category = form.category.data
@@ -67,6 +68,7 @@ def register_influencer():
 
         influencer = Influencer(
             name=name,
+            about=about,
             category=category,
             niche=niche,
             followers=reach,

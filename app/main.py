@@ -14,6 +14,10 @@ def dashboard():
         return redirect(url_for('sponsor.dashboard'))
     return redirect(url_for('main.home'))
 
-@main_bp.route('/files/<filename>', methods=['GET'])
+@main_bp.route('/files/campaign/<filename>', methods=['GET'])
 def campaign_image(filename):
     return send_from_directory(current_app.instance_path + '/media/campaign_images/', filename)
+
+@main_bp.route('/files/influencer/<filename>', methods=['GET'])
+def influencer_picture(filename):
+    return send_from_directory(current_app.instance_path + '/media/profile_pictures/', filename)

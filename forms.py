@@ -14,15 +14,16 @@ ALLOWED_IMAGES = ['jpg', 'png', 'jpeg']
 class InfluencerRegistrationForm(FlaskForm):
     username = StringField('Username:', validators=[DataRequired(), Length(min=3, max=20)])
     name = StringField('Name:', validators=[DataRequired(), Length(min=3, max=100)])
+    about = TextAreaField('About:', validators=[DataRequired(), Length(min=10, max=2000)])
     email = EmailField('Email:', validators=[DataRequired()])
     password1 = PasswordField('Password:', validators=[DataRequired()])
     password2 = PasswordField('Confirm Password:', validators=[DataRequired()])
     category = StringField('Category:', validators=[DataRequired()])
     niche = StringField('Niche:', validators=[DataRequired()])
     reach = IntegerField('Reach:', validators=[DataRequired()], widget=NumberInput(min=1000))
-    instagram = URLField('Instagram:', validators=[DataRequired()])
-    youtube = URLField('YouTube:', validators=[DataRequired()])
-    twitter = URLField('Twitter:', validators=[DataRequired()])
+    instagram = StringField('Instagram:', validators=[DataRequired()])
+    youtube = StringField('YouTube:', validators=[DataRequired()])
+    twitter = StringField('Twitter:', validators=[DataRequired()])
     profile_picture = FileField('Profile Picture:', validators=[FileRequired('File was empty.'), FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
 
     def validate_username(form, field):
@@ -100,6 +101,7 @@ class NewCampaignForm(FlaskForm):
     start_date = DateTimeLocalField('Start Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
     end_date = DateTimeLocalField('End Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
     budget = IntegerField('Budget:', validators=[DataRequired()], widget=NumberInput(min=5))
+    goal = IntegerField('Goal:', validators=[DataRequired()], widget=NumberInput(min=0))
     image = FileField('Image:', validators=[FileRequired('File was empty.'), FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
     public = BooleanField('Public:', validators=[])
 
@@ -146,3 +148,6 @@ class NewAdRequestForm(FlaskForm):
 class AdOfferManageForm(FlaskForm):
     updated_amount = IntegerField('Amount:', validators=[DataRequired()], widget=NumberInput(min=5))
     message = TextAreaField('Message:', validators=[Length(max=1000)])
+
+class SearchForm(FlaskForm):
+    search = StringField('Search:', validators=[])

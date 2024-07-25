@@ -6,16 +6,27 @@
 
 {% block body %}
 <h4>{{ campaign.name }}<button type="button" class="btn ms-4 btn-warning" data-bs-toggle="modal"
-        data-bs-target="#editCampaign">Edit</button></h4>
+        data-bs-target="#editCampaign">Edit</button>
+</h4>
 <hr>
-<p><strong>Description: </strong>{{ campaign.description }}</li>
-</p>
-{{ display_campaign_details(campaign) }}
-<p>
-    <strong>Terms and Conditions:</strong> <a type="button" data-bs-toggle="modal" data-bs-target="#tncModal"
-        class="text-danger">click
-        here</a>
-</p>
+<div class="row g-4">
+    <div class="col col-sm-3">
+        <img src="{{ url_for('main.campaign_image', filename=campaign.image) }}" class="img-fluid"
+            alt="{{ campaign.name }}">
+    </div>
+    <div class="col col-sm-9">
+        <p>
+            <strong>Description: </strong>{{ campaign.description }}</li>
+        </p>
+        {{ display_campaign_details(campaign) }}
+        <p>
+            <strong>Terms and Conditions:</strong> <a type="button" data-bs-toggle="modal" data-bs-target="#tncModal"
+                class="text-danger">click
+                here</a>
+        </p>
+
+    </div>
+</div>
 <hr>
 <h5>Open Ad Requests: <span type="button" class="badge text-bg-warning" data-bs-toggle="modal"
         data-bs-target="#newAdRequest">Create new request
@@ -145,7 +156,7 @@ No requests created / received for this campaign yet.
                     </p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="submit" class="btn btn-success">Update</button>
             </div>
             </form>
@@ -188,7 +199,7 @@ No requests created / received for this campaign yet.
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
             </form>
         </div>
@@ -244,12 +255,14 @@ No requests created / received for this campaign yet.
                         {{ display_errors(adform.message.errors) }}
                     </div>
                     <div class="mb-1">
-                        {{ adform.influencer.label }}
+                        {{ adform.influencer.label }} <a href="{{ url_for('sponsor.findInfluencers') }}"
+                            target="_blank">Find here</a>
                         <div class="input-group">
                             {{ adform.influencer(class="form-control") }}
                         </div>
-                        <div class="form-text">Enter the username of the influencer you'd like to offer to. Please enter
-                            the username correctly, ad request will not be created if username is wrong.</div>
+                        <div class="form-text">Enter the username of the influencer you'd like to offer to. Leave blank
+                            if
+                            you'd like to make it a public request.</div>
                         {{ display_errors(adform.influencer.errors) }}
                     </div>
                     <p>
@@ -261,6 +274,8 @@ No requests created / received for this campaign yet.
                             can send more messages to communicate regarding that.</li>
                         <li>You will be able to decline or accept the counter offer made by the influencer.</li>
                         <li>You will be able to decline your own offer as long as the influencer has not responded.</li>
+                        <li>If you have left the username field blank, the ad request will be public and anybody can
+                            negotiate the price.</li>
                     </ul>
                     </p>
             </div>
@@ -336,6 +351,16 @@ No requests created / received for this campaign yet.
                         <div class="form-text">Enter the budget for your campaign.
                         </div>
                         {{ display_errors(form.budget.errors) }}
+                    </div>
+                    <div class="mb-1">
+                        {{ form.goal.label }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.goal(class="form-control") }}
+                        </div>
+                        <div class="form-text">Enter the goal for your campaign. (The target reach)
+                        </div>
+                        {{ display_errors(form.goal.errors) }}
                     </div>
                     <div class="mb-1">
                         {{ form.start_date.label }}

@@ -36,12 +36,13 @@ class Influencer(db.Model):
     __tablename__ = 'Influencer'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100))
+    about = db.Column(db.String(2000))
     category = db.Column(db.String(100))
     niche = db.Column(db.String(100))
     followers = db.Column(db.Integer)
-    instagram = db.Column(db.String(256))
-    youtube = db.Column(db.String(256))
-    twitter = db.Column(db.String(256))
+    instagram = db.Column(db.String(100))
+    youtube = db.Column(db.String(100))
+    twitter = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
     adrequests = db.relationship('AdRequest', backref='influencer')
 
@@ -96,11 +97,6 @@ class Quote(db.Model):
     message = db.Column(db.String(1000), nullable=True)
     adrequest_id = db.Column(db.Integer, db.ForeignKey('AdRequest.id'))
     created_at = db.Column(db.DateTime, default=datetime.now(), nullable=False)
-
-    def __setattr__(self, key, value):
-        if key == 'created_at' and hasattr(self, key):
-            raise AttributeError("Cannot modify created_at attribute")
-        super().__setattr__(key, value)
 
     def __repr__(self):
         return f'<Quote {self.amount}>'

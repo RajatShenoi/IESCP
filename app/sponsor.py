@@ -2,11 +2,12 @@ import os
 import uuid
 
 from datetime import datetime
-from flask import Blueprint, redirect, render_template, url_for, current_app
+from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app
 from flask_login import current_user
+from sqlalchemy import or_
 
 from . import db
-from forms import AdOfferManageForm, EditCampaignForm, NewAdRequestForm, NewCampaignForm
+from forms import AdOfferManageForm, EditCampaignForm, NewAdRequestForm, NewCampaignForm, SearchForm
 from models import AdRequest, Campaign, Influencer, Quote, Sponsor, User
 from utils.decorators import sponsor_required
 
@@ -53,6 +54,7 @@ def campaigns():
             start_date=form.start_date.data,
             end_date=form.end_date.data,
             budget=form.budget.data,
+            goal=form.goal.data,
             public=form.public.data,
             sponsor_id=sponsor.id,
             image=filename,
@@ -82,6 +84,7 @@ def declineAdOffer(id, ad_id):
         message='This offer has been cancelled / declined.',
         user_id=current_user.id,
         adrequest_id=ad.id,
+        created_at=datetime.now(),
     )
 
     ad.status = 'declined'
@@ -106,6 +109,7 @@ def negotiateAdOffer(id, ad_id):
             message=form.message.data,
             user_id=current_user.id,
             adrequest_id=ad.id,
+            created_at=datetime.now(),
         )
         db.session.add(quote)
         db.session.commit()
@@ -139,6 +143,7 @@ def createAdRequest(id):
             message=form.message.data,
             user_id=current_user.id,
             adrequest_id=ad.id,
+            created_at=datetime.now(),
         )
         db.session.add(quote)
         db.session.commit()
@@ -166,6 +171,7 @@ def campaign(id):
         campaign.start_date = form.start_date.data
         campaign.end_date = form.end_date.data
         campaign.budget = form.budget.data
+        campaign.goal = form.goal.data
         campaign.public = form.public.data
 
         photo = form.image.data
@@ -185,3 +191,33 @@ def campaign(id):
         adform=adform,
         addofferform=adofferform,
     )
+
+@sponsor_bp.route('/sponsor/find', methods=['GET', 'POST'])
+@sponsor_required
+def findInfluencers():
+    influencers = Influencer.query.all()
+    
+    form = SearchForm()
+    if form.validate_on_submit():
+        search_term = f'%{form.search.data.strip()}%'
+        influencers = Influencer.query.filter(
+            or_(
+                Influencer.name.ilike(search_term),
+                Influencer.category.ilike(search_term),
+                Influencer.niche.ilike(search_term),
+                Influencer.followers.ilike(search_term),
+                Influencer.instagram.ilike(search_term),
+                Influencer.youtube.ilike(search_term),
+                Influencer.twitter.ilike(search_term),
+            )
+        ).all()
+    return render_template('dash/sponsor/find.html', influencers=influencers, form=form)
+
+@sponsor_bp.route('/sponsor/find/<username>', methods=['GET'])
+@sponsor_required
+def influencer(username):
+    user = User.query.filter_by(username=username).first()
+    influencer = Influencer.query.filter_by(user=user).first()
+    if influencer is None:
+        return redirect(url_for('sponsor.findInfluencers'))
+    return render_template('dash/sponsor/influencer.html', influencer=influencer)
