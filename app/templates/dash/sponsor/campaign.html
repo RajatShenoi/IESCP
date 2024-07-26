@@ -1,12 +1,13 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import display_errors, display_campaign_card, display_campaign_details %}
+{% from 'macros.html' import display_errors, display_campaign_details %}
 
 {% block title %} Dashboard {% endblock %}
 
 {% block body %}
 <h4>{{ campaign.name }}<button type="button" class="btn ms-4 btn-warning" data-bs-toggle="modal"
-        data-bs-target="#editCampaign">Edit</button>
+        data-bs-target="#editCampaign">Edit</button> {% if campaign.adrequests|length == 0 %}<a
+        href="{{ url_for('sponsor.deleteCampaign', id=campaign.id) }}" class="btn btn-danger">Delete</a>{% endif %}
 </h4>
 <hr>
 <div class="row g-4">
@@ -26,7 +27,7 @@
         </p>
         <strong>Progress:</strong>
         <div class="progress" role="progressbar">
-            <div class="progress-bar bg-success" style="width: {{ campaign.current_reach / campaign.goal * 100 }}%">
+            <div class="progress-bar bg-success" style="width: {{ campaign.current_reach / campaign.goal * 100 }}%;">
                 {{ 100 * (campaign.current_reach / campaign.goal)|round(2) }}%
             </div>
         </div>
@@ -399,6 +400,16 @@ No requests created / received for this campaign yet.
                         <div class="form-text">Enter the goal for your campaign. (The target reach)
                         </div>
                         {{ display_errors(form.goal.errors) }}
+                    </div>
+                    <div class="mb-1">
+                        {{ form.niche.label }}
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.niche(class="form-control") }}
+                        </div>
+                        <div class="form-text">Enter the niche for your campaign. (Eg: Gadgets, T-Shirt, Fast Food)
+                        </div>
+                        {{ display_errors(form.niche.errors) }}
                     </div>
                     <div class="mb-1">
                         {{ form.start_date.label }}

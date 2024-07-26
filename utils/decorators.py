@@ -18,7 +18,7 @@ def sponsor_required(f):
 
 def influencer_required(f):
     """
-    Decorator that checks if the current user is a sponsor.
+    Decorator that checks if the current user is a influencer.
     If the user is not a sponsor, it redirects them to the home page.
     """
     @wraps(f)
@@ -37,6 +37,19 @@ def anonymous_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if current_user.is_authenticated:
+            return redirect(url_for('main.home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    """
+    Decorator that checks if the current user is an admin.
+    If the user is not a sponsor, it redirects them to the home page.
+    """
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.user_type != 'admin':
             return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function

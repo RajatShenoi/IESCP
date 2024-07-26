@@ -16,6 +16,7 @@ class User(UserMixin, db.Model):
     influencer = db.relationship('Influencer', backref='user', uselist=False)
     quotes = db.relationship('Quote', backref='user')
     profile_picture = db.Column(db.String(1000))
+    flagged = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -60,6 +61,7 @@ class Campaign(db.Model):
     public = db.Column(db.Boolean)
     adrequests = db.relationship('AdRequest', backref='campaign')
     goal = db.Column(db.Integer)
+    niche = db.Column(db.String(20))
     tnc = db.Column(db.String(20000))
     image = db.Column(db.String(1000))
     sponsor_id = db.Column(db.Integer, db.ForeignKey('Sponsor.id'))

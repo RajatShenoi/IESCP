@@ -14,6 +14,19 @@ def dashboard():
         return redirect(url_for('sponsor.dashboard'))
     elif current_user.user_type == 'influencer':
         return redirect(url_for('influencer.dashboard'))
+    elif current_user.user_type == 'admin':
+        return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('main.home'))
+
+@main_bp.route('/edit-profile', methods=['GET'])
+@login_required
+def editProfile():
+    if current_user.user_type in 'sponsor':
+        return redirect(url_for('sponsor.editProfile'))
+    elif current_user.user_type == 'influencer':
+        return redirect(url_for('influencer.editProfile'))
+    elif current_user.user_type == 'admin':
+        return redirect(url_for('admin.editProfile'))
     return redirect(url_for('main.home'))
 
 @main_bp.route('/files/campaign/<filename>', methods=['GET'])

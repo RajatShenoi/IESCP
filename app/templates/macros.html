@@ -8,9 +8,9 @@
 {% endif -%}
 {%- endmacro %}
 
-{% macro display_campaign_card(image, title, descrption, id) -%}
+{% macro display_campaign_card(image, title, descrption, id, niche) -%}
 <div class="col">
-    <div class="card h-100">
+    <div class="card h-100 position-relative">
         <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
         <div class="card-body">
             <h5 class="card-title">{{title}}</h5>
@@ -20,6 +20,9 @@
             <a href="{{ url_for('sponsor.campaign', id=id) }}" class="text-body-secondary"><small>More
                     details</small></a>
         </div>
+        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+            {{ niche }}
+        </span>
     </div>
 </div>
 {%- endmacro %}
@@ -110,9 +113,9 @@ No {{ message }} campaigns
 </div>
 {% endmacro %}
 
-{% macro display_campaign_card_inf(image, title, descrption, id) -%}
+{% macro display_campaign_card_inf(image, title, descrption, id, niche) -%}
 <div class="col">
-    <div class="card h-100">
+    <div class="card h-100 position-relative">
         <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
         <div class="card-body">
             <h5 class="card-title">{{title}}</h5>
@@ -122,6 +125,28 @@ No {{ message }} campaigns
             <a href="{{ url_for('influencer.viewCampaign', id=id) }}" class="text-body-secondary"><small>More
                     details</small></a>
         </div>
+        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+            {{ niche }}
+        </span>
+    </div>
+</div>
+{%- endmacro %}
+
+{% macro display_campaign_card_adm(image, title, descrption, id, niche) -%}
+<div class="col">
+    <div class="card h-100 position-relative">
+        <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
+        <div class="card-body">
+            <h5 class="card-title">{{title}}</h5>
+            <p class="card-text">{{descrption[:100]}}...</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('admin.viewCampaign', id=id) }}" class="text-body-secondary"><small>More
+                    details</small></a>
+        </div>
+        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+            {{ niche }}
+        </span>
     </div>
 </div>
 {%- endmacro %}

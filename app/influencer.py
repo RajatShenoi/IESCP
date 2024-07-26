@@ -1,10 +1,12 @@
 from datetime import datetime
-from flask import Blueprint, flash, redirect, render_template, url_for
+import os
+import uuid
+from flask import Blueprint, current_app, flash, redirect, render_template, url_for
 from flask_login import current_user
 from sqlalchemy import or_
 
 from . import db
-from forms import AdOfferManageForm, NewAdRequestInfForm, SearchForm
+from forms import AdOfferManageForm, EditInfluencerForm, NewAdRequestInfForm, SearchForm
 from models import AdRequest, Campaign, Influencer, Quote, User
 from utils.decorators import influencer_required
 
@@ -35,6 +37,7 @@ def findCampaigns():
                 Campaign.start_date.ilike(search_term),
                 Campaign.end_date.ilike(search_term),
                 Campaign.tnc.ilike(search_term),
+                Campaign.niche.ilike(search_term),
             )
         )
     return render_template('dash/influencer/find.html', campaigns=campaigns.all(), form=form)
@@ -176,3 +179,35 @@ def markAdAsCompleted(ad_id):
     db.session.add(quote)
     db.session.commit()
     return redirect(url_for('influencer.dashboard'))
+
+@influencer_bp.route('/influencer/edit-profile', methods=['GET', 'POST'])
+@influencer_required
+def editProfile():
+    user = User.query.filter_by(id=current_user.id).first()
+    influencer = Influencer.query.filter_by(user_id=user.id).first()
+
+    form = EditInfluencerForm(obj=influencer)
+    if form.validate_on_submit():
+        influencer.name = form.name.data
+        influencer.about = form.about.data
+        influencer.category = form.category.data
+        influencer.niche = form.niche.data
+        influencer.followers = form.reach.data
+        influencer.youtube = form.youtube.data
+        influencer.instagram = form.instagram.data
+        influencer.twitter = form.twitter.data
+
+        user.email = form.email.data
+
+        photo = form.profile_picture.data
+        if photo != None and photo.filename != user.profile_picture and photo.filename != '':
+            extension = photo.filename[photo.filename.rfind('.'):]
+            filename = f'{uuid.uuid4()}{extension}'
+            photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
+            os.remove(os.path.join(current_app.instance_path, 'media', 'profile_pictures', user.profile_picture))
+            user.profile_picture = filename
+
+        db.session.commit()
+        flash('Profile updated successfully.', 'success')
+        return redirect(url_for('influencer.dashboard'))
+    return render_template('dash/influencer/edit_profile.html', form=form)

@@ -7,7 +7,7 @@ from flask_login import current_user
 from sqlalchemy import or_
 
 from . import db
-from forms import AdOfferManageForm, EditCampaignForm, NewAdRequestForm, NewCampaignForm, SearchForm
+from forms import AdOfferManageForm, EditCampaignForm, EditSponsorForm, NewAdRequestForm, NewCampaignForm, SearchForm
 from models import AdRequest, Campaign, Influencer, Quote, Sponsor, User
 from utils.decorators import sponsor_required
 
@@ -55,6 +55,7 @@ def campaigns():
             end_date=form.end_date.data,
             budget=form.budget.data,
             goal=form.goal.data,
+            niche=form.niche.data,
             public=form.public.data,
             sponsor_id=sponsor.id,
             image=filename,
@@ -198,6 +199,7 @@ def campaign(id):
         campaign.start_date = form.start_date.data
         campaign.end_date = form.end_date.data
         campaign.budget = form.budget.data
+        campaign.niche = form.niche.data
         campaign.goal = form.goal.data
         campaign.public = form.public.data
 
@@ -218,6 +220,21 @@ def campaign(id):
         adform=adform,
         addofferform=adofferform,
     )
+
+@sponsor_bp.route('/sponsor/campaigns/<int:id>/delete', methods=['GET'])
+@sponsor_required
+def deleteCampaign(id):
+    sponsor = Sponsor.query.filter_by(user_id=current_user.id).first()
+    campaign = Campaign.query.filter_by(id=id, sponsor_id=sponsor.id).first()
+
+    if campaign is None or len(campaign.adrequests) > 0:
+        return redirect(url_for('sponsor.campaigns'))
+    
+    os.remove(os.path.join(current_app.instance_path, 'media', 'campaign_images', campaign.image))
+    db.session.delete(campaign)
+    db.session.commit()
+    flash('Campaign deleted successfully.', 'success')
+    return redirect(url_for('sponsor.campaigns'))
 
 @sponsor_bp.route('/sponsor/find', methods=['GET', 'POST'])
 @sponsor_required
@@ -248,3 +265,29 @@ def influencer(username):
     if influencer is None:
         return redirect(url_for('sponsor.findInfluencers'))
     return render_template('dash/sponsor/influencer.html', influencer=influencer)
+
+@sponsor_bp.route('/sponsor/editProfile', methods=['GET', 'POST'])
+@sponsor_required
+def editProfile():
+    sponsor = Sponsor.query.filter_by(user_id=current_user.id).first()
+
+    form = EditSponsorForm(obj=sponsor)
+    if form.validate_on_submit():
+        sponsor.company_name = form.company_name.data
+        sponsor.industry = form.industry.data
+        sponsor.budget = form.budget.data
+
+        current_user.email = form.email.data
+
+        photo = form.profile_picture.data
+        if photo != None and photo.filename != current_user.profile_picture and photo.filename != '':
+            extension = photo.filename[photo.filename.rfind('.'):]
+            filename = f'{uuid.uuid4()}{extension}'
+            photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
+            os.remove(os.path.join(current_app.instance_path, 'media', 'profile_pictures', current_user.profile_picture))
+            current_user.profile_picture = filename
+
+        db.session.commit()
+        flash('Company Profile updated successfully.', 'success')
+        return redirect(url_for('sponsor.editProfile'))
+    return render_template('dash/sponsor/edit_profile.html', form=form)

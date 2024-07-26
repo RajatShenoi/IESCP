@@ -1,9 +1,10 @@
 import datetime
 
 from flask import flash
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import StringField, PasswordField, IntegerField, URLField, EmailField, ValidationError, DateTimeLocalField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, IntegerField, EmailField, ValidationError, DateTimeLocalField, BooleanField, TextAreaField
 from wtforms.widgets import NumberInput
 from wtforms.validators import DataRequired, Length
 
@@ -102,6 +103,7 @@ class NewCampaignForm(FlaskForm):
     end_date = DateTimeLocalField('End Date:', validators=[DataRequired()], render_kw={'min': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")})
     budget = IntegerField('Budget:', validators=[DataRequired()], widget=NumberInput(min=5))
     goal = IntegerField('Goal:', validators=[DataRequired()], widget=NumberInput(min=0))
+    niche = StringField('Niche:', validators=[DataRequired(), Length(min=3, max=20)])
     image = FileField('Image:', validators=[FileRequired('File was empty.'), FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
     public = BooleanField('Public:', validators=[])
 
@@ -157,3 +159,41 @@ class NewAdRequestInfForm(NewAdRequestForm):
 
     def validate_influencer(form, field):
         pass
+
+class EditInfluencerForm(InfluencerRegistrationForm):
+    username = None
+    password1 = None
+    password2 = None
+    profile_picture = FileField('Profile Picture:', validators=[FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
+
+    def validate_profile_picture(form, field):
+        if type(field.data) == str():
+            extension = field.data[field.data.rfind('.')+1:]
+            if extension not in ALLOWED_IMAGES:
+                raise ValidationError(f'Invalid file type. Allowed types: {", ".join(ALLOWED_IMAGES)}')
+    
+    def validate_email(form, field):
+        if '+' in field.data:
+            raise ValidationError('Email cannot contain \'+\'.')
+        user = User.query.filter_by(email=field.data.lower().strip()).first()
+        if user != current_user and user:
+            raise ValidationError('Email already associated with another account.')
+
+class EditSponsorForm(SponsorRegistrationForm):
+    username = None
+    password1 = None
+    password2 = None
+    profile_picture = FileField('Profile Picture:', validators=[FileAllowed(ALLOWED_IMAGES, f'{", ".join(ALLOWED_IMAGES)} files only.')], render_kw={'accept': f'.{",.".join(ALLOWED_IMAGES)}'})
+
+    def validate_profile_picture(form, field):
+        if type(field.data) == str():
+            extension = field.data[field.data.rfind('.')+1:]
+            if extension not in ALLOWED_IMAGES:
+                raise ValidationError(f'Invalid file type. Allowed types: {", ".join(ALLOWED_IMAGES)}')
+    
+    def validate_email(form, field):
+        if '+' in field.data:
+            raise ValidationError('Email cannot contain \'+\'.')
+        user = User.query.filter_by(email=field.data.lower().strip()).first()
+        if user != current_user and user:
+            raise ValidationError('Email already associated with another account.')
