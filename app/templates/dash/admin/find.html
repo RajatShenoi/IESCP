@@ -1,13 +1,13 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import display_errors, display_campaign_card_adm %}
+{% from 'macros.html' import display_influencer_card_adm %}
 
-{% block title %} Find Campaigns {% endblock %}
+{% block title %} Search Influencers {% endblock %}
 
 {% block body %}
 <div class="row">
     <div class="col-12 col-md-6">
-        <h4>Campaigns</h4>
+        <h4>List of Influencers</h4>
     </div>
     <form class="d-flex col-12 col-md-6 mb-2" method="post">
         {{ form.csrf_token }}
@@ -15,14 +15,13 @@
         <button class="btn btn-outline-success" type="submit">Search</button>
     </form>
 </div>
-{% if campaigns | length != 0 %}
+{% if influencers | length != 0 %}
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
-    {% for campaign in campaigns %}
-    {{display_campaign_card_adm(campaign.image, campaign.name, campaign.description, campaign.id, campaign.niche,
-    campaign.flagged)}}
+    {% for influencer in influencers %}
+    {{display_influencer_card_adm(influencer.user.profile_picture, influencer)}}
     {% endfor %}
 </div>
 {% else %}
-<p>No campaigns that match the search.</p>
+<p>No influencers found.</p>
 {% endif %}
 {% endblock %}

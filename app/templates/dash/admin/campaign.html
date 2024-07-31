@@ -5,7 +5,9 @@
 {% block title %} {{ campaign.name }} {% endblock %}
 
 {% block body %}
-<h4>{{ campaign.name }}<button type="button" class="btn ms-4 btn-warning">Flag</button></h4>
+<h4>{{ campaign.name }}{% if not campaign.flagged %}<a href="{{ url_for('admin.flagCampaign', id=campaign.id) }}"
+        class="btn ms-4 btn-warning">Flag</a>{% else %}<a href="{{ url_for('admin.unflagCampaign', id=campaign.id) }}"
+        class="btn ms-4 btn-warning">Un-Flag</a>{% endif %}</h4>
 <hr>
 <div class="row g-4">
     <div class="col col-sm-3">

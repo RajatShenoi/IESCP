@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import display_errors, display_campaign_details %}
+
+{% block title %} Dashboard {% endblock %}
+
+{% block body %}
+<h4>{{ influencer.name }} <span class="text-body-secondary">({{ influencer.user.username }})</span>{% if not
+    influencer.user.flagged %}<a href="{{ url_for('admin.flagUser', username=influencer.user.username) }}"
+        class="btn ms-4 btn-warning">Flag</a>{% else %}<a
+        href="{{ url_for('admin.unflagUser', username=influencer.user.username) }}"
+        class="btn ms-4 btn-warning">Un-Flag</a>{% endif %}</h4>
+<hr>
+<div class="row g-4">
+    <div class="col col-sm-3">
+        <img src="{{ url_for('main.influencer_picture', filename=influencer.user.profile_picture) }}" class="img-fluid">
+    </div>
+    <div class="col col-sm-9">
+        <p>
+            <strong>About: </strong>{{ influencer.about }}<br>
+            <strong>Followers: </strong>{{ influencer.followers }}<span type="button" data-bs-toggle="tooltip"
+                data-bs-placement="right" data-bs-title="The
+                follower count is as disclosed by
+                the influencer and is not
+                verified.">*</span><br>
+            <strong>Category: </strong>{{ influencer.category }}<br>
+            <strong>Niche: </strong>{{ influencer.niche }}<br>
+        </p>
+        <div class="btn-group" role="group">
+            <a href="https://www.youtube.com/@{{influencer.youtube}}" class="btn btn-danger"
+                style="background-color: rgb(255, 0, 0); color: white;" target="_blank">YouTube</a>
+            <a href="https://x.com/{{influencer.twitter}}" class="btn"
+                style="background-color: rgb(29, 161, 242); color: white;" target="_blank">Twitter</a>
+            <a href="https://instagram.com/{{influencer.instagram}}" class="btn"
+                style="background-color: rgb(225, 48, 108); color: white;" target="_blank">Instagram</a>
+        </div>
+    </div>
+</div>
+<script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+{% endblock %}

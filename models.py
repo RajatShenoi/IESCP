@@ -65,6 +65,7 @@ class Campaign(db.Model):
     tnc = db.Column(db.String(20000))
     image = db.Column(db.String(1000))
     sponsor_id = db.Column(db.Integer, db.ForeignKey('Sponsor.id'))
+    flagged = db.Column(db.Boolean, default=False)
 
     @hybrid_property
     def current_spends(self):

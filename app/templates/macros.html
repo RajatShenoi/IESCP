@@ -132,9 +132,9 @@ No {{ message }} campaigns
 </div>
 {%- endmacro %}
 
-{% macro display_campaign_card_adm(image, title, descrption, id, niche) -%}
+{% macro display_campaign_card_adm(image, title, descrption, id, niche, flagged) -%}
 <div class="col">
-    <div class="card h-100 position-relative">
+    <div class="card h-100 position-relative {% if flagged == True %}text-bg-danger{% endif %}">
         <img src="{{ url_for('main.campaign_image', filename=image) }}" class="card-img-top" alt="{{title}}">
         <div class="card-body">
             <h5 class="card-title">{{title}}</h5>
@@ -146,6 +146,27 @@ No {{ message }} campaigns
         </div>
         <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
             {{ niche }}
+        </span>
+    </div>
+</div>
+{%- endmacro %}
+
+{% macro display_influencer_card_adm(image, influencer) -%}
+<div class="col">
+    <div class="card h-100 position-relative {% if influencer.user.flagged %}text-bg-danger{% endif %}">
+        <img src="{{ url_for('main.influencer_picture', filename=image) }}" class="card-img-top" alt="{{title}}">
+        <div class="card-body">
+            <h5 class="card-title">{{influencer.name}}</h5>
+            <p class="card-text"><small class="text-body-secondary">{{influencer.user.username}}</small></p>
+            <p class="card-text">{{influencer.about[:100]}}...</p>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('admin.viewInfluencer', username=influencer.user.username) }}"
+                class="text-body-secondary"><small>More
+                    details</small></a>
+        </div>
+        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+            {{influencer.followers}}
         </span>
     </div>
 </div>

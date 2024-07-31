@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import redirect, url_for
+from flask import flash, redirect, url_for
 from flask_login import current_user, login_required
 
 def sponsor_required(f):
@@ -12,6 +12,9 @@ def sponsor_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if current_user.user_type != 'sponsor':
+            return redirect(url_for('main.home'))
+        if current_user.flagged:
+            flash('Your account has been flagged. Please contact support for more information.', 'danger')
             return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function
@@ -25,6 +28,9 @@ def influencer_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if current_user.user_type != 'influencer':
+            return redirect(url_for('main.home'))
+        if current_user.flagged:
+            flash('Your account has been flagged. Please contact support for more information.', 'danger')
             return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function
@@ -50,6 +56,9 @@ def admin_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if current_user.user_type != 'admin':
+            return redirect(url_for('main.home'))
+        if current_user.flagged:
+            flash('Your account has been flagged. Please contact support for more information.', 'danger')
             return redirect(url_for('main.home'))
         return f(*args, **kwargs)
     return decorated_function
