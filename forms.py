@@ -146,6 +146,9 @@ class NewAdRequestForm(FlaskForm):
         if not user.influencer:
             flash('User is not an influencer.', 'danger')
             raise ValidationError('User is not an influencer.')
+        if user.flagged:
+            flash('Influencer is flagged.', 'danger')
+            raise ValidationError('Influencer is flagged. You cannot send requests to flagged influencers.')
 
 class AdOfferManageForm(FlaskForm):
     updated_amount = IntegerField('Amount:', validators=[DataRequired()], widget=NumberInput(min=5))

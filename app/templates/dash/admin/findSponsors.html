@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import display_sponsor_card_adm %}
+
+{% block title %} Search Sponsors {% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12 col-md-6">
+        <h4>List of Sponsors</h4>
+    </div>
+    <form class="d-flex col-12 col-md-6 mb-2" method="post">
+        {{ form.csrf_token }}
+        {{ form.search(class="form-control me-2", placeholder="Search") }}
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+</div>
+{% if sponsors | length != 0 %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+    {% for sponsor in sponsors %}
+    {{display_sponsor_card_adm(sponsor)}}
+    {% endfor %}
+</div>
+{% else %}
+<p>No sponsors found.</p>
+{% endif %}
+{% endblock %}

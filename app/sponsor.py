@@ -1,5 +1,6 @@
 import os
 import uuid
+import random
 
 from datetime import datetime
 from flask import Blueprint, flash, redirect, render_template, url_for, current_app
@@ -239,12 +240,12 @@ def deleteCampaign(id):
 @sponsor_bp.route('/sponsor/find', methods=['GET', 'POST'])
 @sponsor_required
 def findInfluencers():
-    influencers = Influencer.query.all()
+    influencers = Influencer.query.join(User).filter(User.flagged == False).all()
     
     form = SearchForm()
     if form.validate_on_submit():
         search_term = f'%{form.search.data.strip()}%'
-        influencers = Influencer.query.filter(
+        influencers = Influencer.query.join(User).filter(
             or_(
                 Influencer.name.ilike(search_term),
                 Influencer.category.ilike(search_term),
@@ -253,7 +254,8 @@ def findInfluencers():
                 Influencer.instagram.ilike(search_term),
                 Influencer.youtube.ilike(search_term),
                 Influencer.twitter.ilike(search_term),
-            )
+            ),
+            User.flagged == False,
         ).all()
     return render_template('dash/sponsor/find.html', influencers=influencers, form=form)
 
@@ -291,3 +293,50 @@ def editProfile():
         flash('Company Profile updated successfully.', 'success')
         return redirect(url_for('sponsor.editProfile'))
     return render_template('dash/sponsor/edit_profile.html', form=form)
+
+def random_colour():
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return f'rgba({r}, {g}, {b}, 0.2)'
+
+@sponsor_bp.route('/sponsor/stats', methods=['GET'])
+@sponsor_required
+def stats():
+    campaignCountLabels = ['Upcoming', 'Ongoing', 'Completed', 'Flagged']
+    campaignCountData = [
+        Campaign.query.filter(Campaign.start_date > datetime.now()).filter_by(flagged = False, sponsor_id = current_user.sponsor.id).count(),
+        Campaign.query.filter(Campaign.start_date < datetime.now(), Campaign.end_date > datetime.now()).filter_by(flagged = False, sponsor_id = current_user.sponsor.id).count(),
+        Campaign.query.filter(Campaign.end_date < datetime.now()).filter_by(flagged = False, sponsor_id = current_user.sponsor.id).count(),
+        Campaign.query.filter_by(flagged = True, sponsor_id = current_user.sponsor.id).count()
+    ]
+
+    adRequestCountLabels = ['Pending', 'Ongoing', 'Declined', 'Completed']
+    adRequestCountData = [
+        sum([1 for campaign in current_user.sponsor.campaigns for ad in campaign.adrequests if ad.status == 'pending']),
+        sum([1 for campaign in current_user.sponsor.campaigns for ad in campaign.adrequests if ad.status == 'ongoing']),
+        sum([1 for campaign in current_user.sponsor.campaigns for ad in campaign.adrequests if ad.status == 'declined']),
+        sum([1 for campaign in current_user.sponsor.campaigns for ad in campaign.adrequests if ad.status == 'completed'])
+    ]
+
+    spendSplitLabels = [campaign.name for campaign in current_user.sponsor.campaigns]
+    spendSplitData = [campaign.current_spends for campaign in current_user.sponsor.campaigns]
+    spendSplitColours = [random_colour() for _ in spendSplitLabels]
+    spendSplitColourBorder = [f'rgb({colour[5:-6]})' for colour in spendSplitColours]
+
+    budgetSplitLabels = [campaign.name for campaign in current_user.sponsor.campaigns]
+    budgetSplitData = [campaign.budget for campaign in current_user.sponsor.campaigns]
+
+    return render_template(
+        'dash/sponsor/stats.html',
+        campaignCountLabels=campaignCountLabels,
+        campaignCountData=campaignCountData,
+        adRequestCountLabels=adRequestCountLabels,
+        adRequestCountData=adRequestCountData,
+        spendSplitLabels=spendSplitLabels,
+        spendSplitData=spendSplitData,
+        spendSplitColours=spendSplitColours,
+        spendSplitColourBorder=spendSplitColourBorder,
+        budgetSplitLabels=budgetSplitLabels,
+        budgetSplitData=budgetSplitData,
+    )

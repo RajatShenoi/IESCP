@@ -5,9 +5,10 @@
 {% block title %} Dashboard {% endblock %}
 
 {% block body %}
-<h4>{{ campaign.name }}<button type="button" class="btn ms-4 btn-warning" data-bs-toggle="modal"
-        data-bs-target="#editCampaign">Edit</button> {% if campaign.adrequests|length == 0 %}<a
-        href="{{ url_for('sponsor.deleteCampaign', id=campaign.id) }}" class="btn btn-danger">Delete</a>{% endif %}
+<h4>{{ campaign.name }}{% if not campaign.flagged %}<button type="button" class="btn ms-4 btn-warning"
+        data-bs-toggle="modal" data-bs-target="#editCampaign">Edit</button> {% if campaign.adrequests|length == 0 %}<a
+        href="{{ url_for('sponsor.deleteCampaign', id=campaign.id) }}" class="btn btn-danger">Delete</a>{% endif %}{%
+    endif %}
 </h4>
 <hr>
 <div class="row g-4">
@@ -34,9 +35,9 @@
     </div>
 </div>
 <hr>
-<h5>Open Ad Requests: <span type="button" class="badge text-bg-warning" data-bs-toggle="modal"
-        data-bs-target="#newAdRequest">Create new request
-    </span>
+<h5>Open Ad Requests: {% if not campaign.flagged %}<span type="button" class="badge text-bg-warning"
+        data-bs-toggle="modal" data-bs-target="#newAdRequest">Create new request
+    </span>{% endif %}
 </h5>
 {% if campaign.adrequests|length == 0 %}
 No requests created / received for this campaign yet.

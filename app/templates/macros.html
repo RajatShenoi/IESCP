@@ -171,3 +171,27 @@ No {{ message }} campaigns
     </div>
 </div>
 {%- endmacro %}
+
+{% macro display_sponsor_card_adm(sponsor) -%}
+<div class="col">
+    <div class="card h-100 position-relative {% if sponsor.user.flagged %}text-bg-danger{% endif %}">
+        <img src="{{ url_for('main.influencer_picture', filename=sponsor.user.profile_picture) }}" class="card-img-top">
+        <div class="card-body">
+            <h5 class="card-title">{{sponsor.company_name}}</h5>
+            <p class="card-text"><small class="text-body-secondary">{{sponsor.user.username}}</small></p>
+        </div>
+        <div class="card-footer">
+            {% if not sponsor.user.flagged %}
+            <a href="{{ url_for('admin.flagSponsor', username=sponsor.user.username) }}"
+                class="text-body-danger"><small>Flag</small></a>
+            {% else %}
+            <a href="{{ url_for('admin.unflagSponsor', username=sponsor.user.username) }}"
+                class="text-body-danger"><small>Un Flag</small></a>
+            {% endif %}
+        </div>
+        <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+            ${{ sponsor.budget }}
+        </span>
+    </div>
+</div>
+{%- endmacro %}

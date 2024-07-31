@@ -1,0 +1,96 @@
+{% extends 'layout.html' %}
+
+{% from 'macros.html' import display_errors, display_campaign_details %}
+
+{% block title %} Dashboard {% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block body %}
+<h2>Statistics</h2>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+    <div class="col">
+        <canvas id="adRequestCount" height="300"></canvas>
+    </div>
+    <div class="col">
+        <canvas id="earningsSplit" height="300"></canvas>
+    </div>
+</div>
+
+<script>
+    const adRequestCount = document.getElementById('adRequestCount');
+    new Chart(adRequestCount, {
+        type: 'bar',
+        data: {
+            labels: {{ adRequestCountLabels | tojson }},
+        datasets: [{
+            label: 'Count',
+            data: {{ adRequestCountData | tojson }},
+        borderWidth: 1,
+        backgroundColor: [
+            'rgba(255, 159, 64, 0.2)',
+            'rgba(75, 192, 192, 0.2)',
+            'rgba(255, 99, 132, 0.2)',
+            'rgba(153, 102, 255, 0.2)',
+        ],
+        borderColor: [
+            'rgb(255, 159, 64)',
+            'rgb(75, 192, 192)',
+            'rgb(255, 99, 132)',
+            'rgb(153, 102, 255)',
+        ],
+        
+            }]
+        },
+        options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Number of AdRequests',
+                position: 'bottom'
+            }
+        }
+    }
+    });
+
+    const earningsSplit = document.getElementById('earningsSplit');
+    new Chart(earningsSplit, {
+        type: 'doughnut',
+        data: {
+            labels: {{ earningsSplitLabels | tojson }},
+        datasets: [{
+            label: 'USD',
+            data: {{ earningsSplitData | tojson }},
+        borderWidth: 1,
+        backgroundColor: {{ earningsSplitColours | tojson }},
+        borderColor: {{ earningsSplitColourBorder | tojson}},
+        
+            }]
+        },
+        options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Earnings per ad request',
+                position: 'bottom'
+            },
+            legend: {
+                display: false,
+            }
+        }
+    }
+    });
+</script>
+{% endblock %}

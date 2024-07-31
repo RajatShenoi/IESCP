@@ -1,8 +1,9 @@
 {% extends 'layout.html' %}
 
-{% from 'macros.html' import display_campaign_card, display_campaign_list %}
+{% from 'macros.html' import display_errors, display_campaign_details %}
 
 {% block title %} Dashboard {% endblock %}
+
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
@@ -11,102 +12,23 @@
 <h2>Statistics</h2>
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
     <div class="col">
-        <canvas id="numberOfUsers" height="300"></canvas>
-    </div>
-    <div class="col">
-        <canvas id="flaggedNumberOfUsers" height="300"></canvas>
-    </div>
-    <div class="col">
         <canvas id="campaignCount" height="300"></canvas>
     </div>
     <div class="col">
         <canvas id="adRequestCount" height="300"></canvas>
     </div>
     <div class="col">
-        <strong>Total Numer of Users:</strong> {{ totalNumberOfUsers }}</strong><br>
-        <strong>Total Budget of Sponsors:</strong> ${{ totalBudgetOfSponsors }}</strong><br>
-        <strong>Total Budget of Campaigns:</strong> ${{ totalBudgetOfCampaigns }}</strong><br>
-        <strong>Total money made by all influencers:</strong> ${{ totalMoneyMadeByInfluencers }}</strong>
+        <canvas id="spendSplit" height="300"></canvas>
+    </div>
+    <div class="col">
+        <canvas id="budgetSplit" height="300"></canvas>
     </div>
 </div>
+
 <script>
-    const numberOfUsers = document.getElementById('numberOfUsers');
-    new Chart(numberOfUsers, {
-        type: 'bar',
-        data: {
-            labels: {{ numberOfUsersLabels | tojson }},
-        datasets: [{
-            label: 'Count',
-            data: {{ numberOfUsersData | tojson }},
-        borderWidth: 1,
-        backgroundColor: [
-            'rgba(255, 159, 64, 0.2)',
-            'rgba(75, 192, 192, 0.2)',
-            'rgba(255, 99, 132, 0.2)',
-        ],
-        borderColor: [
-            'rgb(255, 159, 64)',
-            'rgb(75, 192, 192)',
-            'rgb(255, 99, 132)',
-        ],
-        
-            }]
-        },
-        options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Distribution of Users',
-                position: 'bottom'
-            }
-        }
-    }
-    });
-
-    const flaggedNumberOfUsers = document.getElementById('flaggedNumberOfUsers');
-    new Chart(flaggedNumberOfUsers, {
-        type: 'bar',
-        data: {
-            labels: {{ flaggedNumberOfUsersLabels | tojson }},
-        datasets: [{
-            label: 'Count',
-            data: {{ flaggedNumberOfUsersData | tojson }},
-        borderWidth: 1,
-        backgroundColor: [
-            'rgba(255, 159, 64, 0.2)',
-            'rgba(75, 192, 192, 0.2)',
-        ],
-        borderColor: [
-            'rgb(255, 159, 64)',
-            'rgb(75, 192, 192)',
-        ],
-        
-            }]
-        },
-        options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Flagged Number of Users',
-                position: 'bottom'
-            }
-        }
-    }
-    });
-
     const campaignCount = document.getElementById('campaignCount');
     new Chart(campaignCount, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: {{ campaignCountLabels | tojson }},
         datasets: [{
@@ -146,7 +68,7 @@
 
     const adRequestCount = document.getElementById('adRequestCount');
     new Chart(adRequestCount, {
-        type: 'pie',
+        type: 'bar',
         data: {
             labels: {{ adRequestCountLabels | tojson }},
         datasets: [{
@@ -179,6 +101,72 @@
                 display: true,
                 text: 'Number of AdRequests',
                 position: 'bottom'
+            }
+        }
+    }
+    });
+
+    const spendSplit = document.getElementById('spendSplit');
+    new Chart(spendSplit, {
+        type: 'doughnut',
+        data: {
+            labels: {{ spendSplitLabels | tojson }},
+        datasets: [{
+            label: 'USD',
+            data: {{ spendSplitData | tojson }},
+        borderWidth: 1,
+        backgroundColor: {{ spendSplitColours | tojson }},
+        borderColor: {{ spendSplitColourBorder | tojson}},
+        
+            }]
+        },
+        options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Campaign Actual Spends Split',
+                position: 'bottom'
+            },
+            legend: {
+                display: false,
+            }
+        }
+    }
+    });
+
+    const budgetSplit = document.getElementById('budgetSplit');
+    new Chart(budgetSplit, {
+        type: 'doughnut',
+        data: {
+            labels: {{ budgetSplitLabels | tojson }},
+        datasets: [{
+            label: 'USD',
+            data: {{ budgetSplitData | tojson }},
+        borderWidth: 1,
+        backgroundColor: {{ spendSplitColours | tojson }},
+        borderColor: {{ spendSplitColourBorder | tojson}},
+        
+            }]
+        },
+        options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            title: {
+                display: true,
+                text: 'Budget allocation Split',
+                position: 'bottom'
+            },
+            legend: {
+                display: false,
             }
         }
     }

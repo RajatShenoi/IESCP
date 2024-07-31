@@ -7,7 +7,7 @@ from sqlalchemy import or_
 
 from . import db
 from forms import EditSponsorForm, SearchForm
-from models import Campaign, Influencer, Quote, Sponsor, User
+from models import AdRequest, Campaign, Influencer, Quote, Sponsor, User
 from utils.decorators import admin_required
 
 admin_bp = Blueprint('admin', __name__)
@@ -15,7 +15,55 @@ admin_bp = Blueprint('admin', __name__)
 @admin_bp.route('/admin', methods=['GET'])
 @admin_required
 def dashboard():
-    return render_template('dash/admin/home.html')
+    numberOfUsersLabels = ['Influencers', 'Sponsors', 'Admins']
+    numberOfUsersData = [
+        User.query.filter_by(user_type = 'influencer').count(),
+        User.query.filter_by(user_type = 'sponsor').count(),
+        User.query.filter_by(user_type = 'admin').count()
+    ]
+
+    flaggedNumberOfUsersLabels = ['Influencers', 'Sponsors']
+    flaggedNumberOfUsersData = [
+        User.query.filter_by(user_type = 'influencer', flagged = True).count(),
+        User.query.filter_by(user_type = 'sponsor', flagged = True).count()
+    ]
+
+    campaignCountLabels = ['Upcoming', 'Ongoing', 'Completed', 'Flagged']
+    campaignCountData = [
+        Campaign.query.filter(Campaign.start_date > datetime.now()).filter_by(flagged = False).count(),
+        Campaign.query.filter(Campaign.start_date < datetime.now(), Campaign.end_date > datetime.now()).filter_by(flagged = False).count(),
+        Campaign.query.filter(Campaign.end_date < datetime.now()).filter_by(flagged = False).count(),
+        Campaign.query.filter_by(flagged = True).count()
+    ]
+
+    adRequestCountLabels = ['Pending', 'Ongoing', 'Declined', 'Completed']
+    adRequestCountData = [
+        AdRequest.query.filter_by(status = 'pending').count(),
+        AdRequest.query.filter_by(status = 'ongoing').count(),
+        AdRequest.query.filter_by(status = 'declined').count(),
+        AdRequest.query.filter_by(status = 'completed').count()
+    ]
+
+    totalNumberOfUsers = sum(numberOfUsersData)
+    totalBudgetOfSponsors = sum([sponsor.budget for sponsor in Sponsor.query.all()])
+    totalBudgetOfCampaigns = sum([campaign.budget for campaign in Campaign.query.all()])
+    totalMoneyMadeByInfluencers = sum([adreq.current_quote.amount for adreq in AdRequest.query.filter_by(status = 'completed').all()])
+
+    return render_template(
+        'dash/admin/home.html', 
+        numberOfUsersData=numberOfUsersData, 
+        numberOfUsersLabels=numberOfUsersLabels,
+        flaggedNumberOfUsersLabels=flaggedNumberOfUsersLabels,
+        flaggedNumberOfUsersData=flaggedNumberOfUsersData,
+        campaignCountLabels=campaignCountLabels,
+        campaignCountData=campaignCountData,
+        adRequestCountLabels=adRequestCountLabels,
+        adRequestCountData=adRequestCountData,
+        totalNumberOfUsers=totalNumberOfUsers,
+        totalBudgetOfSponsors=totalBudgetOfSponsors,
+        totalBudgetOfCampaigns=totalBudgetOfCampaigns,
+        totalMoneyMadeByInfluencers=totalMoneyMadeByInfluencers
+    )
 
 @admin_bp.route('/admin/editProfile', methods=['GET', 'POST'])
 @admin_required
@@ -123,7 +171,7 @@ def find():
     form = SearchForm()
     if form.validate_on_submit():
         search_term = f'%{form.search.data.strip()}%'
-        influencers = Influencer.query.filter(
+        influencers = Influencer.query.join(User).filter(
             or_(
                 Influencer.name.ilike(search_term),
                 Influencer.category.ilike(search_term),
@@ -132,9 +180,28 @@ def find():
                 Influencer.instagram.ilike(search_term),
                 Influencer.youtube.ilike(search_term),
                 Influencer.twitter.ilike(search_term),
+                User.username.ilike(search_term),
             )
         ).all()
     return render_template('dash/admin/find.html', influencers=influencers, form=form)
+
+@admin_bp.route('/admin/findSponsors', methods=['GET', 'POST'])
+@admin_required
+def findSponsors():
+    sponsors = Sponsor.query.filter(Sponsor.company_name != 'admin').all()    
+    form = SearchForm()
+    if form.validate_on_submit():
+        search_term = f'%{form.search.data.strip()}%'
+        sponsors = Sponsor.query.join(User).filter(
+            or_(
+                Sponsor.company_name.ilike(search_term),
+                Sponsor.industry.ilike(search_term),
+                Sponsor.budget.ilike(search_term),
+                User.username.ilike(search_term),
+            ),
+            Sponsor.company_name != 'admin'
+        ).all()
+    return render_template('dash/admin/findSponsors.html', sponsors=sponsors, form=form)
 
 @admin_bp.route('/admin/find/<username>', methods=['GET'])
 @admin_required
@@ -187,3 +254,46 @@ def unflagUser(username):
     db.session.commit()
     flash('Influencer un-flagged successfully.', 'success')
     return redirect(url_for('admin.viewInfluencer', username=username))
+
+@admin_bp.route('/admin/sponsor/<username>/flag', methods=['GET'])
+@admin_required
+def flagSponsor(username):
+    user = User.query.filter_by(username=username).first()
+    sponsor = Sponsor.query.filter_by(user=user).first()
+    if sponsor is None:
+        flash('Sponsor not found.', 'danger')
+        return redirect(url_for('admin.find'))
+    
+    for campaign in sponsor.campaigns:
+        campaign.flagged = True
+        for adreq in campaign.adrequests:
+            if adreq.status == 'pending':
+                quote = Quote(
+                    amount=0,
+                    message='This offer has been closed because the sponsor was flagged.',
+                    user_id=current_user.id,
+                    adrequest_id=adreq.id,
+                    created_at=datetime.now(),
+                )
+                adreq.status = 'declined'
+                db.session.add(quote)
+                db.session.commit()
+    
+    sponsor.user.flagged = True
+    db.session.commit()
+    flash('Sponsor flagged successfully.', 'danger')
+    return redirect(url_for('admin.findSponsors'))
+
+@admin_bp.route('/admin/sponsor/<username>/unflag', methods=['GET'])
+@admin_required
+def unflagSponsor(username):
+    user = User.query.filter_by(username=username).first()
+    sponsor = Sponsor.query.filter_by(user=user).first()
+    if sponsor is None:
+        flash('Sponsor not found.', 'danger')
+        return redirect(url_for('admin.find'))
+    
+    sponsor.user.flagged = False
+    db.session.commit()
+    flash('Sponsor un-flagged successfully.', 'success')
+    return redirect(url_for('admin.findSponsors'))

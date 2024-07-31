@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import random
 import uuid
 from flask import Blueprint, current_app, flash, redirect, render_template, url_for
 from flask_login import current_user
@@ -48,6 +49,10 @@ def viewCampaign(id):
     campaign = Campaign.query.filter_by(public=True, id=id).filter(Campaign.end_date > datetime.now(), Campaign.start_date <= datetime.now()).first()
 
     if campaign is None:
+        return redirect(url_for('influencer.findCampaigns'))
+    
+    if campaign.flagged:
+        flash('This campaign has been flagged and is currently unavailable.', 'danger')
         return redirect(url_for('influencer.findCampaigns'))
     
     influencer = Influencer.query.filter_by(user_id=current_user.id).first()
@@ -211,3 +216,35 @@ def editProfile():
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('influencer.dashboard'))
     return render_template('dash/influencer/edit_profile.html', form=form)
+
+def random_colour():
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return f'rgba({r}, {g}, {b}, 0.2)'
+
+@influencer_bp.route('/influencer/stats', methods=['GET'])
+@influencer_required
+def stats():
+    adRequestCountLabels = ['Pending', 'Ongoing', 'Declined', 'Completed']
+    adRequestCountData = [
+        sum([1 for ad in current_user.influencer.adrequests if ad.status == 'pending']),
+        sum([1 for ad in current_user.influencer.adrequests if ad.status == 'ongoing']),
+        sum([1 for ad in current_user.influencer.adrequests if ad.status == 'declined']),
+        sum([1 for ad in current_user.influencer.adrequests if ad.status == 'completed'])
+    ]
+
+    earningsSplitLabels = [ad.name for ad in current_user.influencer.adrequests if ad.status == 'completed']
+    earningsSplitData = [ad.current_quote.amount for ad in current_user.influencer.adrequests if ad.status == 'completed']
+    earningsSplitColours = [random_colour() for _ in earningsSplitLabels]
+    earningsSplitColourBorder = [f'rgb({colour[5:-6]})' for colour in earningsSplitColours]
+
+    return render_template(
+        'dash/influencer/stats.html',
+        adRequestCountLabels=adRequestCountLabels,
+        adRequestCountData=adRequestCountData,
+        earningsSplitLabels=earningsSplitLabels,
+        earningsSplitData=earningsSplitData,
+        earningsSplitColours=earningsSplitColours,
+        earningsSplitColourBorder=earningsSplitColourBorder
+    )
