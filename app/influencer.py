@@ -87,7 +87,7 @@ def viewCampaign(id):
         influencer.adrequests.append(ad)
         db.session.commit()
 
-        return redirect(url_for('influencer.dashboard'))
+        return redirect(url_for('influencer.viewCampaign', id=id))
     return render_template('dash/influencer/campaign.html', campaign=campaign, adform=form, adrequests=adrequests, addofferform=addofferform)
 
 @influencer_bp.route('/influencer/offer/<int:ad_id>/negotiate', methods=['POST'])

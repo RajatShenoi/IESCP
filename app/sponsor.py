@@ -190,6 +190,9 @@ def campaign(id):
 
     if campaign is None:
         return redirect(url_for('sponsor.campaigns'))
+    
+    if campaign.flagged:
+        flash('This campaign has been flagged and is currently disabled. You cannot perform any actions.', 'danger')
 
     form = EditCampaignForm(obj=campaign)
     adform = NewAdRequestForm()
