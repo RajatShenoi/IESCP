@@ -1,7 +1,9 @@
 from flask import redirect, url_for
 from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
-from flask_wtf import CSRFProtect
+# from flask_wtf import CSRFProtect
+from flask_cors import CORS
+from flask_restful import Api
 
 from app import create_app
 from models import User
@@ -11,8 +13,11 @@ app.config['SECRET_KEY'] = '9nL2hZpiJNzXUfneHq1RdhAu8A1vb9xd'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 bootstrap = Bootstrap5(app)
-csrf = CSRFProtect(app)
+# csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
+api = Api(app)
+
+CORS(app)
 
 @login_manager.user_loader
 def load_user(user_id):

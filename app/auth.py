@@ -1,7 +1,9 @@
 import os, uuid
 
-from flask import Blueprint, flash, redirect, render_template, url_for, current_app
+from flask import Blueprint, jsonify, render_template, request, current_app
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from flask_login import login_user, logout_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import bcrypt, db
 from forms import InfluencerRegistrationForm, LoginForm, SponsorRegistrationForm
@@ -10,53 +12,66 @@ from utils.decorators import anonymous_required
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
-@anonymous_required
+# TODO: Validation for all routes
+
+def save_profile_picture(photo):
+    extension = photo.filename[photo.filename.rfind('.'):]
+    filename = f'{uuid.uuid4()}{extension}'
+    photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
+    return filename
+
+@auth_bp.route('/login', methods=['POST'])
 def login():
-    form = LoginForm()
+    data = request.json
+    umail = data.get('umail', '').lower()
+    password = data.get('password', '')
 
-    if form.validate_on_submit():
-        umail = form.umail.data.lower()
-        password = form.password.data
+    user = User.query.filter((User.username == umail) | (User.email == umail)).first()
 
-        user = User.query.filter_by(username=umail).first() or User.query.filter_by(email=umail).first()
+    if user and check_password_hash(user.password, password):
+        token = create_access_token(identity=str({"id": user.id, "user_type": user.user_type}))
+        return jsonify({"access_token": token, "message": "Login successful"}), 200
 
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('main.home'))
-        flash('Invalid credentials. Please try again.', 'danger')
-        return render_template('auth/login.html', form=form)
-
-    return render_template('auth/login.html', form=form)
+    return jsonify({"error": "Invalid credentials. Please try again."}), 401
 
 @auth_bp.route('/register', methods=['GET'])
 @anonymous_required
 def register():
     return render_template('auth/register.html')
 
-@auth_bp.route('/register/influencer', methods=['GET', 'POST'])
-@anonymous_required
+@auth_bp.route('/register/influencer', methods=['POST'])
 def register_influencer():
-    form = InfluencerRegistrationForm()
+    data = request.form
+    photo = request.files.get('profile_picture')
 
-    if form.validate_on_submit():
-        username = form.username.data.lower().strip()
-        email = form.email.data.lower().strip()
-        about = form.about.data
-        password = form.password1.data
-        name = form.name.data
-        category = form.category.data
-        niche = form.niche.data
-        reach = form.reach.data
-        instagram = form.instagram.data
-        youtube = form.youtube.data
-        twitter = form.twitter.data
-        photo = form.profile_picture.data
+    if not photo:
+        return jsonify({"error": "Profile picture is required"}), 400
+    
+    if not photo.filename:
+        return jsonify({"error": "Invalid file upload"}), 400
+    
+    if photo and photo.filename == '':
+        return jsonify({"error": "Profile picture file is empty"}), 400
 
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        extension = photo.filename[photo.filename.rfind('.'):]
-        filename = f'{uuid.uuid4()}{extension}'
-        photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
+    
+    try:
+        username = data['username'].lower().strip()
+        email = data['email'].lower().strip()
+        about = data['about']
+        password = data['password1']
+        name = data['name']
+        category = data['category']
+        niche = data['niche']
+        reach = data['reach']
+        instagram = data.get('instagram')
+        youtube = data.get('youtube')
+        twitter = data.get('twitter')
+
+        hashed_password = generate_password_hash(password)
+        filename = save_profile_picture(photo)
+
+        if User.query.filter((User.username == username) | (User.email == email)).first():
+            return jsonify({"error": "User already exists"}), 400
 
         user = User(
             username=username,
@@ -84,28 +99,42 @@ def register_influencer():
         db.session.add(user)
         db.session.commit()
 
-        login_user(user)
-        return redirect(url_for('main.home'))
-    return render_template('auth/influencer.html', form=form)
+        token = create_access_token(identity={"id": user.id, "user_type": "influencer"})
+        return jsonify({"access_token": token, "message": "Influencer registered successfully"}), 201
 
-@auth_bp.route('/register/sponsor', methods=['GET', 'POST'])
-@anonymous_required
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to register influencer: {str(e)}"}), 500
+
+@auth_bp.route('/register/sponsor', methods=['POST'])
 def register_sponsor():
-    form = SponsorRegistrationForm()
+    data = request.form
+    photo = request.files.get('profile_picture')
+    print(data)
+    print(photo)
+    
+    if not photo:
+        return jsonify({"error": "Profile picture is required"}), 400
+    
+    if not photo.filename:
+        return jsonify({"error": "Invalid file upload"}), 400
+    
+    if photo and photo.filename == '':
+        return jsonify({"error": "Profile picture file is empty"}), 400
 
-    if form.validate_on_submit():
-        username = form.username.data.lower()
-        email = form.email.data.lower()
-        password = form.password1.data
-        company_name = form.company_name.data
-        industry = form.industry.data
-        budget = form.budget.data
-        photo = form.profile_picture.data
+    try:
+        username = data['username'].lower().strip()
+        email = data['email'].lower().strip()
+        password = data['password1']
+        company_name = data['company_name']
+        industry = data['industry']
+        budget = data['budget']
 
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        extension = photo.filename[photo.filename.rfind('.'):]
-        filename = f'{uuid.uuid4()}{extension}'
-        photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
+        hashed_password = generate_password_hash(password)
+        filename = save_profile_picture(photo)
+
+        if User.query.filter((User.username == username) | (User.email == email)).first():
+            return jsonify({"error": "User already exists"}), 400
 
         user = User(
             username=username,
@@ -128,11 +157,15 @@ def register_sponsor():
         db.session.add(user)
         db.session.commit()
 
-        login_user(user)
-        return redirect(url_for('main.home'))
-    return render_template('auth/sponsor.html', form=form)
+        token = create_access_token(identity=str({"id": user.id, "user_type": "sponsor"}))
+        return jsonify({"access_token": token, "message": "Sponsor registered successfully"}), 201
 
-@auth_bp.route('/logout', methods=['GET'])
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to register sponsor: {str(e)}"}), 500
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
 def logout():
-    logout_user()
-    return redirect(url_for('main.home'))
+    # TODO: Invalidate token logic could be added if using token blacklisting
+    return jsonify({"message": "Logout successful"}), 200

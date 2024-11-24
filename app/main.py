@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, redirect, render_template, send_from_directory, url_for
+from flask import Blueprint, current_app, jsonify, redirect, render_template, send_from_directory, url_for
 from flask_login import current_user, login_required
 
 main_bp = Blueprint('main', __name__)
