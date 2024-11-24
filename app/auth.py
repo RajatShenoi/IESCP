@@ -20,7 +20,7 @@ def save_profile_picture(photo):
     photo.save(os.path.join(current_app.instance_path, 'media', 'profile_pictures', filename))
     return filename
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/api/login', methods=['POST'])
 def login():
     data = request.json
     umail = data.get('umail', '').lower()
@@ -34,12 +34,12 @@ def login():
 
     return jsonify({"error": "Invalid credentials. Please try again."}), 401
 
-@auth_bp.route('/register', methods=['GET'])
+@auth_bp.route('/api/register', methods=['GET'])
 @anonymous_required
 def register():
     return render_template('auth/register.html')
 
-@auth_bp.route('/register/influencer', methods=['POST'])
+@auth_bp.route('/api/register/influencer', methods=['POST'])
 def register_influencer():
     data = request.form
     photo = request.files.get('profile_picture')
@@ -106,7 +106,7 @@ def register_influencer():
         db.session.rollback()
         return jsonify({"error": f"Failed to register influencer: {str(e)}"}), 500
 
-@auth_bp.route('/register/sponsor', methods=['POST'])
+@auth_bp.route('/api/register/sponsor', methods=['POST'])
 def register_sponsor():
     data = request.form
     photo = request.files.get('profile_picture')
@@ -164,7 +164,7 @@ def register_sponsor():
         db.session.rollback()
         return jsonify({"error": f"Failed to register sponsor: {str(e)}"}), 500
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route('/api/logout', methods=['POST'])
 @jwt_required()
 def logout():
     # TODO: Invalidate token logic could be added if using token blacklisting
